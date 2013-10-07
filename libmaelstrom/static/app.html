@@ -1,0 +1,276 @@
+<html>
+<head>
+	<title>Maelstrom</title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+	<script src="js/dygraph-combined.js"></script>
+	<script src="js/jquery-ui-timepicker-addon.js"></script>
+	<script src="js/maelstrom.js"></script>
+	<script src="js/maelstrom-vessels.js"></script>
+	<script src="js/maelstrom-profile.js"></script>
+	<script src="js/maelstrom-tests.js"></script>
+	<script src="js/app.js"></script>
+
+	<link id="themeStylesheet" rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/smoothness/jquery-ui.min.css" />
+	
+	<link rel="stylesheet" type="text/css" href="css/app.css" />
+	<style id="themeSelectedStyle">.ui-selected { background: #e7e7e7; }</style>
+</head>
+<body>
+	<div id="main">
+		<div id="mainTop">
+			<div id="header">
+				<div id="lcdDiv"></div>
+				<div id="logoDiv">
+					<div id="logo" class="ui-widget-header ui-corner-all">
+						<img id="breweryLogo" src="img/logo-000.png" border="0" alt=""/>
+					</div>
+					<div id="connStatus">
+						<div id="connStatusLight"></div>
+						<div id="connStatusMessage">Connecting</div>
+						<button id="reconnect">Reconnect</button>
+						<button id="alarmsAck" class="ui-state-error">Acknowledge</button>
+					</div>
+				</div>
+				<div id="alarmsDiv"></div>
+				<br class="crystal" />
+			</div>
+		</div>
+		<div id="mainBottom">
+			<div id="mainTabs">
+				<ul>
+					<li><a href="#brewhouse"><span>Brew House</span></a></li>
+					<li><a href="#alehouse"><span>Ale Chamber</span></a></li>
+					<li><a href="#lagerhouse"><span>Lager Chamber</span></a></li>
+					<li><a href="#profilelibrary"><span>Profile Library</span></a></li>
+					<li><a href="#iosettings"><span>IO Settings</span></a></li>
+					<li><a href="#appsettings"><span>App Settings</span></a></li>
+					<li><a href="#debuggerDiv"><span>Debugger</span></a></li>
+				</ul>
+				<div id="brewhouse">
+					<div id="pot1" class="vesselBox"></div>
+					<div id="pot2" class="vesselBox"></div>
+					<div id="pot3" class="vesselBox"></div>
+					<br class="crystal" />
+				</div>
+				<div id="alehouse">
+					<div id="conical1" class="vesselBox"></div>
+					<div id="conical2" class="vesselBox"></div>
+					<br class="crystal" />
+				</div>
+				<div id="lagerhouse">
+					<div id="carboy1" class="vesselBox"></div>
+					<div id="carboy2" class="vesselBox"></div>
+					<br class="crystal" />
+				</div>
+				<div id="profilelibrary">
+					<div id="profiles">
+						<ul id="profilelist">
+							<li>Loading Profiles...</li>
+						</ul>
+						<div class="leftButtons">
+							<button id="addProfile_button">Add Profile</button>
+						</div>
+					</div>
+					<div id="profileDetails" class="ui-corner-all">
+						<div id="profileTableDiv">
+							<div id="profileTitle">Click a Profile on the left to see temperatures and events.</div>
+							<div id="profileStartDate"></div>
+							<div id="profileTable"></div>
+							<div id="profileChart" style="width:345px;"></div>
+							<br class="crystal" />
+						</div>
+					</div>
+					<div id="profileForm">
+						<div id="profileForm1">
+							<div>
+								<div class="label">Name</div>
+								<input type="text" id="addProfile_name" placeholder="Enter Name" />
+							</div>
+							<div>
+								<div class="label">Type</div>
+								<select id="addProfile_type">
+									<option name="fermentation" id="fermentation">Fermentation</option>
+									<option name="mash" id="mash">Mash</option>
+								</select>
+							</div>
+						</div>
+						<div id="profileForm2">
+							<div>
+								<div class="label">StartDate</div>
+								<input type="text" id="addProfile_startdate" placeholder="Enter Start Date" />
+							</div>
+							<div>
+								<button type="button" id="profileEditNowButton">Start Now</button>
+								<button type="button" id="profileEditAddCurrentButton">Insert Now</button>
+							</div>
+						</div>
+						<br class="crystal" />
+						<div id="profileSaveError">Error Saving Profile!</div>
+						<div id="profileEditDiv"></div>
+						<div id="profileEditChartDiv"></div>
+					</div>
+					<div id="profileDelete">
+						<div class="deleteWarning">
+							<div>Confirm you wish to delete profile:</div>
+						</div>
+						<div id="profileToDelete"></div>
+					</div>
+					<br class="crystal" />
+				</div>
+				<div id="iosettings">
+					<div id="controllers">
+						<ul id="controllerlist">
+							<li>Loading Controllers...</li>
+						</ul>
+						<div class="leftButtons">
+							<button id="addController_button">Add Controller</button>
+							<button id="showDeviceLogger">Logger</button>
+						</div>
+					</div>
+					<div id="chambers" class="ui-corner-all">
+						<ul id="chamberlist">
+							<li>Click a Controller on the left to see it's chambers.</li>
+						</ul>
+						<button id="addChamber_button">Add Chamber</button>
+					</div>
+					<div id="controllerForm">
+						<div>
+							<div class="label">Name</div>
+							<input type="text" id="addController_name" placeholder="Enter Name" />
+						</div>
+						<div>
+							<div class="label">Adress</div>
+							<input type="text" id="addController_address" placeholder="Enter Address" />
+						</div>
+						<div>
+							<div class="label">Port</div>
+							<input type="text" id="addController_port" placeholder="Enter Port" />
+						</div>
+					</div>
+					<div id="chamberForm">
+						<div>
+							<div class="label">Name</div>
+							<input type="text" id="addChamber_name" placeholder="Enter Name" />
+						</div>
+					</div>
+					<div id="deviceForm">
+						<div>
+							<div class="label">Name</div>
+							<input type="text" id="addDevice_name" placeholder="Enter Name" />
+						</div>
+						<div>
+							<div class="label">Slot</div>
+							<input type="text" id="addDevice_slot" placeholder="Enter Slot" />
+						</div>
+						<div>
+							<div class="label">Function</div>
+							<input type="text" id="addDevice_function" placeholder="Enter Function" />
+						</div>
+						<div>
+							<div class="label">Hardware Type</div>
+							<input type="text" id="addDevice_hardwaretype" placeholder="Enter Hardware Type" />
+						</div>
+						<div>
+							<div class="label">Device Type</div>
+							<input type="text" id="addDevice_devicetype" placeholder="Enter Device Type" />
+						</div>
+					</div>
+					<div id="controllerDelete">
+						<div class="deleteWarning">
+							<div>Confirm you wish to delete controller:</div>
+						</div>
+						<div id="controllerToDelete"></div>
+					</div>
+					<div id="chamberDelete">
+						<div class="deleteWarning">
+							<div>Confirm you wish to delete chamber:</div>
+						</div>
+						<div id="chamberToDelete"></div>
+					</div>
+					<div id="deviceDelete">
+						<div class="deleteWarning">
+							<div>Confirm you wish to delete device:</div>
+						</div>
+						<div id="deviceToDelete"></div>
+					</div>
+					<br class="crystal" />
+				</div>
+				<div id="appsettings">
+					<div id="appsettingsGroups">
+						<ul id="appsettingslist">
+							<li data-groupid="appsettings_lookfeel"><a href="#" class="title">Look and Feel</a></li>
+							<li data-groupid="appsettings_advanced"><a href="#" class="title">Advanced</a></li>
+						</ul>
+					</div>
+					<div id="appsettingsMain" class="ui-corner-all">
+						<div id="appsettings_lookfeel" class="appsettingGroup">
+							<div class="settingsRow">
+								<div class="label">Logo Path/URL</div>
+								<div class="field"><input type="text" id="appsettings_logo" placeholder="Enter Logo URL" /></div>
+								<div class="desc">relative path or absolute url to a logo file.  best if sized ~ 348w x 96h</div>
+							</div>
+							<div class="settingsRow">
+								<div class="label">Theme Name</div>
+								<div class="field"><input type="text" id="appsettings_theme" placeholder="Enter Theme Name" /></div>
+								<div class="desc">The name of a valid jQuery UI theme available on google ajax apis (/jqueryui/1.10.3/themes/xxxx)</div>
+							</div>
+							<div class="settingsRow">
+								<div class="label">UI Selected Style</div>
+								<div class="field"><input type="text" id="appsettings_selectedcss" placeholder="Enter CSS Color" /></div>
+								<div class="desc">The CSS definition of .ui-selected, for example: "background: #eee;" or "background: #343434; border: solid 1px #333"</div>
+							</div>
+							<div class="settingsRow">
+								<button id="saveSettings_lookfeel">Save</button>
+							</div>
+						</div>
+						<div id="appsettings_advanced" class="appsettingGroup">
+							<div>
+								<div class="label">TODO: Advanced Settings Impl</div>
+								<div class="field"><input type="text" id="appsettings_xxx" placeholder="Enter XXX" /></div>
+								<div class="desc">xxx xxx xxx xxx xxx xxx xxx xxx</div>
+							</div>
+						</div>
+					</div>
+					<br class="crystal" />
+				</div>
+				<div id="debuggerDiv">
+					<div id="publish" class="ui-corner-all">
+						<div class="instructions"><div>Publish a message to a channel</div></div>
+						<textarea id="postThisMsg"></textarea>
+						<span id="postThisChanLabel">Channel</span>&#160;<select id="postThisChan">
+							<option>data</option>
+							<option>chart</option>
+							<option>logs</option>
+							<option>alarms</option>
+						</select>
+						<button id="postThisBtn" type="button">submit</button>
+						<br class="crystal" />
+					</div>
+					<div id="debug" class="ui-corner-all">
+						<div class="instructions"><div>Debug Messages</div></div>
+						<div id="debugger"></div>
+						<br class="crystal" />
+					</div>
+					<br class="crystal" />
+					<div style="margin:5px 0 5px 0;">Test Simulations</div>
+					<div id="debugTests">
+						<button id="test-alarm-generate">Generate Alarm</button>
+						<button id="test-alarm-ack">Ack Alarms</button>
+						<button id="test-mash">Mash simulation</button>
+						<button id="test-aleferm">Ale Chamber simulation</button>
+						<button id="test-lagerferm">Lager Chamber simulation</button>
+						<button id="test-addio">Add Controllers/Devices</button>
+						<button id="test-addprof">Add Profiles</button>
+						<button id="test-devlogs">Generate Logs</button>
+						<button id="test-appsetlogo">App Settings: Logo</button>
+						<button id="test-appsetlogotheme">App Settings: Logo/Theme</button>
+					</div>
+				</div>
+			</div>
+			<div id="logsDiv" title="Device Logger"></div>
+		</div>
+		<br class="crystal" />
+	</div>
+</body>
+</html>
