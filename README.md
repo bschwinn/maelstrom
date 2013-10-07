@@ -29,9 +29,11 @@ To run this, you need a working python 2.7 install which includes simplejson, sq
 Running it
 ----------------------------
 To run the web server:
+```
 python maelstrom.py
-
+```
 To browse the app:
+
 http://localhost:8888/
 
 Testing it
