@@ -57,4 +57,4 @@ To run some tests, which generate things like temperature profiles, io configura
 
 Project Layout
 ----------------------------
-The main file, maelstrom.py, sets up routes and launches a tornado webserver.  The web server, data model and core server implementation are in the libmaelstrom directory.  The client is pure html/js/css and lives in the libmaelstrom/static directory.  The sqlite database will be created as a file: <ROOT>/data/db
+The main file, maelstrom.py, sets up routes and launches a tornado webserver.  The web server, data model and core server implementation are in the libmaelstrom directory.  The client is pure html/js/css and lives in the libmaelstrom/static directory.  The sqlite database will be created as a file: ROOT_DIR/data/db
