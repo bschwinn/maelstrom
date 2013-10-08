@@ -23,18 +23,27 @@ Client side:
 
 Bootstrapping
 ----------------------------
-To run this, you need a working python 2.7 install which includes simplejson, sqlite3 and tornado (at least).  More to come...
+Instructions to run this from a working BrewPi installation are below.  Working on clean ubuntu instructions.
+
+To run this from a BrewPi installation:
+
+```
+sudo apt-get install python-pip
+sudo pip install tornado
+sudo pip install sqlalchemy
+
+```
 
 
 Running it
 ----------------------------
-To run the web server:
+To run the web server, invoke this command from the root dir:
 
 ```
 python maelstrom.py
 ```
 
-To browse the app:
+Then browse the app here:
 
 http://localhost:8888/
 
