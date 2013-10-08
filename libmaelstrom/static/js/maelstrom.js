@@ -2,6 +2,13 @@
  *********** Main Maelstrom Library ***********
  **********************************************/
 
+_maelGetRootUrl = function() {
+	return window.location.protocol + '//' + window.location.host;
+}
+_maelGetRootUrlWS = function() {
+	var isSecure = ( window.location.protocol.indexOf('https') > -1 );
+	return ((isSecure) ? 'wss:' : 'ws:') + '//' + window.location.host;
+}
 
 // maelstrom socket connection and pub/sub
 var Maelstrom = function(config) {
@@ -10,8 +17,10 @@ var Maelstrom = function(config) {
 Maelstrom.prototype = {
 	init: function(config) {
 		this.config = config;
-		this.socketUrl = 'ws://localhost:8888/socket';
-		this.sendUrl = 'http://localhost:8888/publish';
+		// this.socketUrl = 'ws://localhost:8888/socket';
+		// this.sendUrl = 'http://localhost:8888/publish';
+		this.socketUrl = _maelGetRootUrlWS() + '/socket';
+		this.sendUrl = _maelGetRootUrl() + '/publish';
 		this.channels = [ 'data', 'logs', 'alarms' ];
 		this.connect();
 	},
@@ -64,7 +73,7 @@ var MaelstromAppSettings = function(mael) {
 	if ( arguments.length > 0 ) this.init(mael);
 }
 MaelstromAppSettings.prototype = {
-	url: 'http://localhost:8888/appsettings',
+	url: _maelGetRootUrl() + '/appsettings',
 	localKeyPrefix: 'maelstromAppSettings-',
 	init: function(mael) {
 		mael.subscribe('_appsettings');
@@ -111,12 +120,12 @@ var MaelstromIOSettings = function(mael) {
 	if ( arguments.length > 0 ) this.init(mael);
 }
 MaelstromIOSettings.prototype = {
-	urlControllers: 'http://localhost:8888/iocontrollers',
-	urlController: 'http://localhost:8888/iocontroller',
-	urlChambers: 'http://localhost:8888/iochambers',
-	urlChamber: 'http://localhost:8888/iochamber',
-	urlDevices: 'http://localhost:8888/iodevices',
-	urlDevice: 'http://localhost:8888/iodevice',
+	urlControllers: _maelGetRootUrl() + '/iocontrollers',
+	urlController: _maelGetRootUrl() + '/iocontroller',
+	urlChambers: _maelGetRootUrl() + '/iochambers',
+	urlChamber: _maelGetRootUrl() + '/iochamber',
+	urlDevices: _maelGetRootUrl() + '/iodevices',
+	urlDevice: _maelGetRootUrl() + '/iodevice',
 	init: function(mael) {
 		mael.subscribe('_iocontrollers');
 		mael.subscribe('_iochambers');
@@ -255,8 +264,8 @@ var MaelstromProfileSettings = function(mael) {
 }
 MaelstromProfileSettings.prototype = {
 	init: function(mael) {
-		this.urlProfiles = 'http://localhost:8888/profiles';
-		this.urlProfile = 'http://localhost:8888/profile';
+		this.urlProfiles = _maelGetRootUrl() + '/profiles';
+		this.urlProfile = _maelGetRootUrl() + '/profile';
 		mael.subscribe('_profiles');
 		$(document).bind( 'maelstromChannelMessage-_profiles', function(ev, message) {
 			console.log("Profile change: " + message.payload.eventType);
