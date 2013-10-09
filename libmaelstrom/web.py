@@ -79,7 +79,7 @@ class IOControllersHandler(RequestHandler):
             chambs = []
             for chamb in controller.chambers:
                 chambs.append(dict(id = chamb.id, name = chamb.name))
-            conDic = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, chambers = chambs )
+            conDic = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, socket = controller.socket, chambers = chambs )
             c.append(conDic)
         self.write(json.dumps(c))
 
@@ -88,11 +88,12 @@ class IOControllersHandler(RequestHandler):
         name = self.get_argument('name')
         address = self.get_argument('address')
         port = self.get_argument('port')
-        controller = db.IOController(name = name, address = address, port = port)
+        socket = self.get_argument('socket')
+        controller = db.IOController(name = name, address = address, port = port, socket = socket)
         session.add(controller)
         session.commit()
         # publish a change event 
-        c = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port)
+        c = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, socket = controller.socket)
         p = dict( eventType = "create", controller = c )
         core.theMan.publishMessage("_iocontrollers", json.dumps(dict( channel = "_iocontrollers", payload = p )))
 
@@ -108,7 +109,7 @@ class IOControllerHandler(RequestHandler):
             for dev in chamb.devices:
                 devs.append( dict(id = dev.id, name = dev.name, slot = dev.slot, function = dev.function, hardwaretype = dev.hardwaretype, devicetype = dev.devicetype) )
             chambs.append(dict(id = chamb.id, name = chamb.name, devices = devs))
-        conDic = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, chambers = chambs )
+        conDic = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, socket = controller.socket, chambers = chambs )
         self.write(json.dumps(conDic))
 
     def post(self, controllerid):
@@ -118,9 +119,10 @@ class IOControllerHandler(RequestHandler):
         controller.name = self.get_argument('name')
         controller.address = self.get_argument('address')
         controller.port = self.get_argument('port')
+        controller.socket = self.get_argument('socket')
         session.commit()
         # publish a change event 
-        c = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port)
+        c = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, socket = controller.socket)
         p = dict( eventType = "update", controller = c )
         core.theMan.publishMessage("_iocontrollers", json.dumps(dict( channel = "_iocontrollers", payload = p )))
 

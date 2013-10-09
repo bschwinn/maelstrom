@@ -31,7 +31,11 @@ class PostMan:
 	channel = "data"
 	posturl = "http://localhost:8888/publish"
 	def postData(self, msg):
-		m = msg
+		data = urllib.urlencode(msg)
+		request = urllib2.Request(url, data)
+		response = urllib2.urlopen(request)
+		html = response.read()
+		print html
 
 # deals wit creating messages
 class MessMan:

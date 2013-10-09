@@ -595,6 +595,7 @@ function deviceConfigCreateControllerEdit(controller) {
 		$('#addController_name').val(controller.name);
 		$('#addController_address').val(controller.address);
 		$('#addController_port').val(controller.port);
+		$('#addController_socket').val(controller.socket);
 		$('#controllerForm').dialog({
 	        modal: true,
 	        title: "Update Controller",
@@ -602,10 +603,7 @@ function deviceConfigCreateControllerEdit(controller) {
 	            {
 	                text: "Upate",
 	                click: function() {
-						ioman.updateController( controllerId, $('#addController_name').val(), $('#addController_address').val(), $('#addController_port').val());
-						// ????
-						// we get update notifications, no need to get controllers here - see maelstromIOControllerChange and maelstromIOChamberChange
-						// ioman.getControllers();
+						ioman.updateController( controllerId, $('#addController_name').val(), $('#addController_address').val(), $('#addController_port').val(), $('#addController_socket').val());
 	                    $( this ).dialog( "close" );
 	                }
 	            },{
@@ -812,6 +810,7 @@ function deviceConfigAddController() {
 	$('#addController_name').val('');
 	$('#addController_address').val('');
 	$('#addController_port').val('');
+	$('#addController_socket').val('');
 	$('#controllerForm').dialog({
         modal: true,
         title: "Create Controller",
@@ -819,8 +818,7 @@ function deviceConfigAddController() {
             {
                 text: "Create",
                 click: function() {
-					ioman.createController( $('#addController_name').val(), $('#addController_address').val(), $('#addController_port').val());
-					ioman.getControllers();
+					ioman.createController( $('#addController_name').val(), $('#addController_address').val(), $('#addController_port').val(), $('#addController_socket').val());
                     $( this ).dialog( "close" );
                 }
             },{
