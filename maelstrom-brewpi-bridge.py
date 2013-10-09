@@ -1,42 +1,54 @@
-import time
 import socket
 import os
 
+from libmaelstrom import db
 
-debug = 1
+dataPath = os.path.dirname(os.path.realpath(__file__))+"/data"
+db.init_db(dataPath)
 
-socketFile = '/home/brewpi/BEERSOCKET'
+# deals wit getting json from the socket
+class SockMan:
+	def getData(self, sock, msg):
+		if os.path.exists(sock):
+			try:
+				s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+				s.connect(sock)
+				s.send(msg, 4096)
+				resp = s.recv(4096)
+				return self.parseData(resp)
+			except socket.timeout:
+				print "socket timed out."
+		else:
+			print "socket file: " + sock + " doesn't exist."
 
-postDataUrl = "http://localhost:8888/publish"
-postDataChannel = ""
+	def parseData(self, data):
+		print ":::::::::::::::::::data::::::::::::::::::::"
+		print data
+		return json.loads(data)
 
-def getSocketData(msg):
-	if os.path.exists(socketFile):
-		try:
-			s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-			s.connect(socketFile)
-			s.send(msg, 4096)
-			resp = s.recv(4096)
-			return resp
-		except socket.timeout:
-			return "Oh No, Socket timed out man."
+# deals wit posting datas
+class PostMan:
+	channel = "data"
+	posturl = "http://localhost:8888/publish"
+	def postData(self, msg):
+		m = msg
 
-	else:
-		return "Oh No, No socket file, bailing out."
+# deals wit creating messages
+class MessMan:
+	def createMessage(self, lcd, cc, cs, cv):
+		return ""
 
+sockman = SockMan()
+postman = PostMan()
+messman = MessMan()
 
-lcd = getSocketData("lcd")
-cc = getSocketData("getControlConstants")
-cs = getSocketData("getControlSettings")
-cv = getSocketData("getControlVariables")
+for controller in db.DBSession().query(db.IOController).all():
+	lcd = sockman.getData(controller.socket, "lcd")
+	cc  = sockman.getData(controller.socket, "getControlConstants")
+	cs  = sockman.getData(controller.socket, "getControlSettings")
+	cv  = sockman.getData(controller.socket, "getControlVariables")
 
+	msg = messman.createMessage(lcd,cc,cs,cv)
 
-if debug:
-	print "LCD: "
-	print lcd
-	print "Control Constants: "
-	print cc
-	print "Control Settings: "
-	print cs
-	print "Control Variables: "
-	print cv
+	postman.postData(msg)
+

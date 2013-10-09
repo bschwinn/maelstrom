@@ -73,6 +73,7 @@ class IOController(Base, TMix):
     name = Column(VARCHAR(1024))
     address = Column(VARCHAR(1024))
     port = Column(VARCHAR(1024))
+    socket = Column(VARCHAR(1024))
     chambers = relationship("IOChamber", passive_deletes=True)
     
     def __init__(self, **kwargs):
