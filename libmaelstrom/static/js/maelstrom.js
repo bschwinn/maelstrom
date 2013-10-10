@@ -179,11 +179,11 @@ MaelstromIOSettings.prototype = {
 			}
 		});
 	},
-	createController: function(name, address, port) {
+	createController: function(name, address, port, socket) {
 		$.ajax({
 			url: this.urlControllers,
 			type: "post", 
-			data: { name: name, address: address, port: port },
+			data: { name: name, address: address, port: port, socket: socket },
 			success: function(data) {
 				console.log("Controller: " + name + ", has been created.");
 			}
