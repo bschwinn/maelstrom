@@ -14,6 +14,7 @@ class ConnectionMgr:
         'data' : [], 
         'chart' : [], 
         'logs' : [], 
+        'lcd' : [], 
         'alarms' : [],
         '_profiles' : [],
         '_iocontrollers' : [],

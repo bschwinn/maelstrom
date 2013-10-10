@@ -89,7 +89,7 @@ $(document).ready(function () {
 			ioman.init(mael);
 			profman.init(mael);
 		}
-		$(['alarms', 'data', 'logs']).each(function(idx, key) {
+		$(['alarms', 'data', 'logs', 'lcd']).each(function(idx, key) {
 			mael.subscribe(key);
 		});
 	});
@@ -100,7 +100,11 @@ $(document).ready(function () {
 	});
 	// listen for messages on the "data" channel here
 	$(document).bind( 'maelstromChannelMessage-data', function (ev, message) {
-		// this needs to be done more intelligently
+		// TODO - handle data channel stuff
+	});
+	// listen for messages on the "data" channel here
+	$(document).bind( 'maelstromChannelMessage-lcd', function (ev, message) {
+		// TODO - this needs to be done more intelligently
 		lcdFormatPayload(message.payload);
 	});
 	// listen for messages on the "alarms" channel here
@@ -265,20 +269,25 @@ function changeSelectedStyle(newStyle) {
 }
 
 // stuff for LCD channel and widget
-function lcdFormatFloat(num){
-	return parseFloat(num).toFixed(1);
-}
+// function lcdFormatFloat(num){
+// 	return parseFloat(num).toFixed(1);
+// }
+// function lcdFormatPayload(payload) {
+// 	var chamb = payload.controllers[0].chambers[0];
+// 	var html = '';
+// 	var spacer = '   ';
+// 	var sp = lcdFormatFloat(chamb.variables.sp) + '';
+// 	if ( sp.indexOf('.') > 2 ) spacer = '  ';
+// 	html += '<div>' + chamb.name + '</div>';
+// 	html += '<div>Mode: ' + chamb.mode + '</div>';
+// 	html += '<div>SP: ' + spacer + sp + spacer + '  PV:  ' + lcdFormatFloat(chamb.variables.pv) + '</div>';
+// 	html += '<div>SP2:' + spacer + lcdFormatFloat(chamb.variables.sp2) + spacer + '  PV2: ' + lcdFormatFloat(chamb.variables.pv2) + '</div>';
+// 	html += '<div>' + chamb.state + ' for ' + chamb.time + '</div>';
+// 	$('#lcdDiv').html(html);
+// }
 function lcdFormatPayload(payload) {
-	var chamb = payload.controllers[0].chambers[0];
-	var html = '';
-	var spacer = '   ';
-	var sp = lcdFormatFloat(chamb.variables.sp) + '';
-	if ( sp.indexOf('.') > 2 ) spacer = '  ';
-	html += '<div>' + chamb.name + '</div>';
-	html += '<div>Mode: ' + chamb.mode + '</div>';
-	html += '<div>SP: ' + spacer + sp + spacer + '  PV:  ' + lcdFormatFloat(chamb.variables.pv) + '</div>';
-	html += '<div>SP2:' + spacer + lcdFormatFloat(chamb.variables.sp2) + spacer + '  PV2: ' + lcdFormatFloat(chamb.variables.pv2) + '</div>';
-	html += '<div>' + chamb.state + ' for ' + chamb.time + '</div>';
+	var lcd = payload.lcd;
+	var html = lcd.join('\n');
 	$('#lcdDiv').html(html);
 }
 
