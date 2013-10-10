@@ -287,7 +287,7 @@ function changeSelectedStyle(newStyle) {
 // }
 function lcdFormatPayload(payload) {
 	var lcd = payload.lcd;
-	var html = lcd.join('\n');
+	var html = lcd.join('<br/>');
 	$('#lcdDiv').html(html);
 }
 
