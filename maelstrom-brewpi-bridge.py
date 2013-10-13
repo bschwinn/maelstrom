@@ -1,5 +1,4 @@
-import socket
-import os
+import socket, os, time
 import urllib, urllib2
 import simplejson as json
 
@@ -78,13 +77,15 @@ bridge = BrewPiBridge()
 # init db connection - this may create it if not there ?!?
 db.init_db( os.path.dirname(os.path.realpath(__file__))+"/data" )
 
-for controller in db.DBSession().query(db.IOController).all():
-	lcd = bridge.getData(controller, "lcd")
-	cs  = bridge.getData(controller, "getControlSettings")
+while True:
 
-	msg = bridge.createDataMessage(controller, cs)
-	bridge.postData("data", msg)
-	lmsg = bridge.createLCDMessage(controller, lcd)
-	bridge.postData("lcd", lmsg)
+	for controller in db.DBSession().query(db.IOController).all():
+		lcd = bridge.getData(controller, "lcd")
+		cs  = bridge.getData(controller, "getControlSettings")
 
+		msg = bridge.createDataMessage(controller, cs)
+		bridge.postData("data", msg)
+		lmsg = bridge.createLCDMessage(controller, lcd)
+		bridge.postData("lcd", lmsg)
 
+	time.sleep(7)
