@@ -17,11 +17,13 @@ var Maelstrom = function(config) {
 Maelstrom.prototype = {
 	init: function(config) {
 		this.config = config;
-		// this.socketUrl = 'ws://localhost:8888/socket';
-		// this.sendUrl = 'http://localhost:8888/publish';
 		this.socketUrl = _maelGetRootUrlWS() + '/socket';
 		this.sendUrl = _maelGetRootUrl() + '/publish';
-		this.channels = [ 'data', 'logs', 'alarms' ];
+		this.heartBeatTime = 10000;
+		this.heartBeatSkips = 0;
+		this.heartBeatMaxSkips = 2;
+		this.heartBeatCheckTimer = null;
+		this.heartBeatPingTimer = null;
 		this.connect();
 	},
 	connect: function(channel) {
@@ -37,33 +39,73 @@ Maelstrom.prototype = {
 			that.onClose();
 	    };
 	},
+	createHeartBeatChecker: function() {
+		var that = this;
+		this.heartBeatCheckTimer = window.setTimeout( function() {
+			console.log("heartbeat missed ! #" + that.heartBeatSkips);
+			if ( that.heartBeatSkips >= (that.heartBeatMaxSkips-1) ) {
+				console.log("heartbeat missed max times !!!! #" + that.heartBeatSkips);
+				$(document).trigger( 'maelstromDisconnected', { status: 'disconnected', statusMsg: 'Maelstrom client disconnected from server.' } );
+			} else {
+				that.createHeartBeatChecker();
+				that.heartBeatSkips++;
+			}
+		}, this.heartBeatTime );
+	},
+	resetHeartBeatTimer: function() {
+		var that = this;
+		this.heartBeatSkips = 0;
+		// reset checker
+		window.clearTimeout(this.heartBeatCheckTimer);
+		// delay next check
+		this.heartBeatPingTimer = window.setTimeout(function() {
+			that.sendHeartBeatPing();
+			that.createHeartBeatChecker();
+		}, this.heartBeatTime);
+	},
 	subscribe: function(channel) {
 		this.ws.send( '{ "action": "subscribe", "channel": "' + channel + '" }' );
 	},
 	unsubscribe: function(channel) {
 		this.ws.send( '{ "action": "unsubscribe", "channel": "' + channel + '" }' );
 	},
+	sendHeartBeatPing: function() {
+		this.ws.send( '{ "action": "ping", "channel": "_heartbeat" }' );
+	},
 	postMessage: function(channel, message) {
 		var postData = {data: JSON.stringify(message), channel: channel};
 		$.post(this.sendUrl, postData, function(){});
 	},
 	onOpen: function() {
+		var that = this;
+		this.subscribe("_heartbeat");
+		this.heartBeatPingTimer = window.setTimeout(function() {
+			that.sendHeartBeatPing();
+			that.createHeartBeatChecker();
+		}, this.heartBeatTime);
 		this.logMessage("Maelstrom client connected");
 		$(document).trigger( 'maelstromConnected', { status: 'connected', statusMsg: 'Maelstrom client connected to server.' } );
 	},
 	onClose: function() {
 		this.logMessage("Maelstrom client disconnected");
+		window.clearTimeout(this.heartBeatCheckTimer);
+		window.clearTimeout(this.heartBeatPingTimer);
 		$(document).trigger( 'maelstromDisconnected', { status: 'disconnected', statusMsg: 'Maelstrom client disconnected from server.' } );
 	},
 	onMessage: function(event) {
 		var env = $.parseJSON(event.data);
 		var msg = $.parseJSON(env.data);
-		$(document).trigger( 'maelstromChannelMessage-' + env.channel, msg );
-		this.logMessage(env.data + ' (' + env.channel + ')');
+		if ( env.channel == "_heartbeat" ) {
+			this.resetHeartBeatTimer();
+			this.logMessage("Heartbeat OK");
+		} else {
+			$(document).trigger( 'maelstromChannelMessage-' + env.channel, msg );
+			this.logMessage(env.data + ' (' + env.channel + ')');
+		}
 	},
 	logMessage: function(msg) {
 		if ( this.config.debugEnabled === true && this.config.debugDivId != '' ) {
-		    $('#' + this.config.debugDivId).append('<div>' + msg + '</div>');
+		    $('#' + this.config.debugDivId).append('<div>' + msg + '</div>').scrollTop(999999);
 		}
 	}
 };

@@ -20,7 +20,8 @@ class ConnectionMgr:
         '_iocontrollers' : [],
         '_iochambers' : [],
         '_iodevices' : [],
-        '_appsettings' : []
+        '_appsettings' : [],
+        '_heartbeat' : []
     }
 
     def getChannels(self):
@@ -52,6 +53,12 @@ class ConnectionMgr:
     def removeSubscription(self, channel, conn):
         self.channels.get(channel).remove(conn)
 
+    def sendHeartbeat(self, conn):
+        if conn in self.connections and conn in self.getChannel("_heartbeat"):
+            data = json.dumps( dict( payload = dict( action = "pong" )) ) # data is a string, TODO make sure this is sound
+            msg = dict( channel = "_heartbeat", data = data )
+            conn.write_message(json.dumps(msg))
+
 # static/global instance - need better python skills here
 # the connection mgr keeps connection/subscription state
 theMan = ConnectionMgr()
@@ -68,7 +75,10 @@ class ClientSocket(websocket.WebSocketHandler):
 
     def on_message(self, message):
         msg = json.loads(message)
-        if theMan.hasChannel(msg.get('channel')):
+
+        if msg.get('channel') == "_heartbeat" and msg.get('action') == "ping":
+            theMan.sendHeartbeat(self)
+        elif theMan.hasChannel(msg.get('channel')):
             if msg.get('action') == 'subscribe':
                 print "subscribing to channel: " + msg.get('channel')
                 theMan.addSubscription(msg.get('channel'), self)
