@@ -27,6 +27,7 @@ Maelstrom.prototype = {
 		this.connect();
 	},
 	connect: function(channel) {
+		this.logMessage("Connecting to maelstrom server...");
 		var that = this;
 		this.ws = new WebSocket(this.socketUrl);
 	    this.ws.onmessage = function(event) {
@@ -70,7 +71,12 @@ Maelstrom.prototype = {
 		this.ws.send( '{ "action": "unsubscribe", "channel": "' + channel + '" }' );
 	},
 	sendHeartBeatPing: function() {
-		this.ws.send( '{ "action": "ping", "channel": "_heartbeat" }' );
+		try {
+			this.ws.send( '{ "action": "ping", "channel": "_heartbeat" }' );
+		} catch(err) {
+			$(document).trigger( 'maelstromDisconnected', { status: 'disconnected', statusMsg: 'Maelstrom client disconnected from server.' } );
+			console.log("Error sending heartbeat, we must be disconnected.");
+		}
 	},
 	postMessage: function(channel, message) {
 		var postData = {data: JSON.stringify(message), channel: channel};
@@ -78,7 +84,6 @@ Maelstrom.prototype = {
 	},
 	onOpen: function() {
 		var that = this;
-		this.subscribe("_heartbeat");
 		this.heartBeatPingTimer = window.setTimeout(function() {
 			that.sendHeartBeatPing();
 			that.createHeartBeatChecker();

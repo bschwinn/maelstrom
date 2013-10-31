@@ -96,7 +96,7 @@ $(document).ready(function () {
 	$(document).bind( 'maelstromDisconnected', function (ev, data) { 
 		$('#connStatusLight').removeClass('connected').addClass('disconnected');
 		$('#connStatusMessage').text('Disconnected from Server');
-		$('#reconnect').show();
+		$('#reconnect').removeAttr('disabled').show();
 	});
 	// listen for messages on the "data" channel here
 	$(document).bind( 'maelstromChannelMessage-data', function (ev, message) {
@@ -202,6 +202,8 @@ $(document).ready(function () {
 	});
 	// alarm ack button in header
 	$('#reconnect').button().click(function() {
+		$('#connStatusMessage').text('Reconnecting to server...');
+		$('#reconnect').attr('disabled', 'disabled');
 		mael.connect();
 	});
 	// add controller button

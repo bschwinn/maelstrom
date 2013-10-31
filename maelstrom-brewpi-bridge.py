@@ -37,8 +37,6 @@ class BrewPiBridge:
 		request = urllib2.Request(self.posturl, data)
 		try: 
 			response = urllib2.urlopen(request)
-	 		html = response.read()
-			print html
 		except urllib2.URLError, e:
 		    print e
 

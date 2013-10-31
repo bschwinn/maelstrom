@@ -20,8 +20,7 @@ class ConnectionMgr:
         '_iocontrollers' : [],
         '_iochambers' : [],
         '_iodevices' : [],
-        '_appsettings' : [],
-        '_heartbeat' : []
+        '_appsettings' : []
     }
 
     def getChannels(self):
@@ -54,7 +53,7 @@ class ConnectionMgr:
         self.channels.get(channel).remove(conn)
 
     def sendHeartbeat(self, conn):
-        if conn in self.connections and conn in self.getChannel("_heartbeat"):
+        if conn in self.connections:
             data = json.dumps( dict( payload = dict( action = "pong" )) ) # data is a string, TODO make sure this is sound
             msg = dict( channel = "_heartbeat", data = data )
             conn.write_message(json.dumps(msg))
