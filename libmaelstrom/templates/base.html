@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<title>Maelstrom2</title>
+	<link rel="stylesheet" type="text/css" href="css/app.css" />
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+</head>
+<body ng-app="brewApp">
+	<div id="main" ng-controller="BrewCtrl" brew-key-processor>
+
+		<!-- top stuffs -->
+		<div id="mainTop" class="panel panel-default">
+			<div id="header" class="panel-body">
+				<div id="lcdDiv" class="col-md-4 bg-primary">
+					some data here
+				</div>
+				<div id="logoDiv" class="col-md-4">
+					<div id="logo"><img class="img-responsive" ng-src="{{appsettings.breweryLogo}}" border="0" alt=""/></div>
+					<div id="connStatus">
+						<div id="connStatusLight" class="{{connStatus.status}}"></div>
+						<div id="connStatusMessage">{{connStatus.statusMessage}}</div>
+						<button id="reconnect" ng-click="reconnect()" class="btn btn-danger btn-xs {{connStatus.status}}">Reconnect</button>
+						<button id="alarmsAck" ng-click="acknowledgeAlarms()" class="btn btn-danger btn-xs {{needsAcknowledgement ? 'alarm' : ''}}">Acknowledge</button>
+					</div>
+				</div>
+				<div id="alarmsDiv" class="col-md-4 {{needsAcknowledgement ? 'bg-danger' : 'bg-primary'}}" brew-auto-scroll>
+					<div ng-repeat="alarm in alarms">
+						{{ alarm.msg + '(' + alarm.source + ')' }}
+					</div>
+				</div>
+				<br class="crystal" />
+			</div>
+		</div>
+
+		<!-- bottom stuffs -->
+		<div id="mainBottom">
+
+			{% block content %}{% endblock %}
+
+		</div><!-- mainBottom -->
+
+	</div><!-- main -->
+
+	<script src="js/angular-1.2.17.js"></script>
+	<script src="js/jquery-1.10.2.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/dygraph-combined.js"></script>
+	<script src="js/maelstrom.js"></script>
+	<script src="js/maelstrom-profile.js"></script>
+	<script src="js/app.js"></script>
+	<script src="js/services.js"></script>
+	<script src="js/controllers.js"></script>
+</body>
+</html>
