@@ -26,6 +26,8 @@ class BrewPiBridge:
 				return self.parseData(resp)
 			except socket.timeout:
 				print "socket timed out."
+			except socket.error:
+				print "socket error, trying again next time..."
 		else:
 			print "socket file: " + sock + " doesn't exist."
 
@@ -78,8 +80,10 @@ db.init_db( os.path.dirname(os.path.realpath(__file__))+"/data" )
 while True:
 
 	for controller in db.DBSession().query(db.IOController).all():
+
 		lcd = bridge.getData(controller, "lcd")
 		cs  = bridge.getData(controller, "getControlSettings")
+		# {'profile': 'Sound Czech Pilsner', 'heatEst': 1.855, 'fridgeSet': 82.26, 'dataLogging': 'active', 'beerSet': 64.26, 'mode': 'p', 'coolEst': 22.16}
 
 		msg = bridge.createDataMessage(controller, cs)
 		bridge.postData("data", msg)

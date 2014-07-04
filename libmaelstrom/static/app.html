@@ -1,280 +1,182 @@
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-	<title>Maelstrom</title>
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-	<script src="js/dygraph-combined.js"></script>
-	<script src="js/jquery-ui-timepicker-addon.js"></script>
-	<script src="js/maelstrom.js"></script>
-	<script src="js/maelstrom-vessels.js"></script>
-	<script src="js/maelstrom-profile.js"></script>
-	<script src="js/maelstrom-tests.js"></script>
-	<script src="js/app.js"></script>
-
-	<link id="themeStylesheet" rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/smoothness/jquery-ui.min.css" />
-	
+	<title>Maelstrom2</title>
 	<link rel="stylesheet" type="text/css" href="css/app.css" />
-	<style id="themeSelectedStyle">.ui-selected { background: #e7e7e7; }</style>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
 </head>
-<body>
-	<div id="main">
-		<div id="mainTop">
-			<div id="header">
-				<div id="lcdDiv"></div>
-				<div id="logoDiv">
-					<div id="logo" class="ui-widget-header ui-corner-all">
-						<img id="breweryLogo" src="img/logo-000.png" border="0" alt=""/>
-					</div>
+<body ng-app="brewApp">
+	<div id="main" ng-controller="BrewCtrl" brew-key-processor>
+
+		<!-- top stuffs -->
+		<div id="mainTop" class="panel panel-default">
+			<div id="header" class="panel-body">
+				<div id="lcdDiv" class="col-md-4 bg-primary">
+					some data here
+				</div>
+				<div id="logoDiv" class="col-md-4">
+					<div id="logo"><img class="img-responsive" ng-src="{{appsettings.breweryLogo}}" border="0" alt=""/></div>
 					<div id="connStatus">
-						<div id="connStatusLight"></div>
-						<div id="connStatusMessage">Connecting</div>
-						<button id="reconnect">Reconnect</button>
-						<button id="alarmsAck" class="ui-state-error">Acknowledge</button>
+						<div id="connStatusLight" class="{{connStatus.status}}"></div>
+						<div id="connStatusMessage">{{connStatus.statusMessage}}</div>
+						<button id="reconnect" ng-click="reconnect()" class="btn btn-danger btn-xs {{connStatus.status}}">Reconnect</button>
+						<button id="alarmsAck" ng-click="acknowledgeAlarms()" class="btn btn-danger btn-xs {{needsAcknowledgement ? 'alarm' : ''}}">Acknowledge</button>
 					</div>
 				</div>
-				<div id="alarmsDiv"></div>
+				<div id="alarmsDiv" class="col-md-4 {{needsAcknowledgement ? 'bg-danger' : 'bg-primary'}}" brew-auto-scroll>
+					<div ng-repeat="alarm in alarms">
+						{{ alarm.msg + '(' + alarm.source + ')' }}
+					</div>
+				</div>
 				<br class="crystal" />
 			</div>
 		</div>
+
+		<!-- bottom stuffs -->
 		<div id="mainBottom">
+
+			<!-- main tab'ed content -->
 			<div id="mainTabs">
-				<ul>
-					<li><a href="#brewhouse"><span>Brew House</span></a></li>
-					<li><a href="#alehouse"><span>Ale Chamber</span></a></li>
-					<li><a href="#lagerhouse"><span>Lager Chamber</span></a></li>
-					<li><a href="#profilelibrary"><span>Profile Library</span></a></li>
-					<li><a href="#iosettings"><span>IO Settings</span></a></li>
-					<li><a href="#appsettings"><span>App Settings</span></a></li>
-					<li><a href="#debuggerDiv"><span>Debugger</span></a></li>
+				<ul id="mainTabNav" class="nav nav-tabs" brew-tabs>
+					<li style="margin-left:10px;"><a href="#profiles" class="active" data-toggle="tab"><span>Profiles</span></a></li>
+					<li><a href="#appsettings" class="active" data-toggle="tab"><span>App Settings</span></a></li>
+					<li><a href="#debuggerDiv" data-toggle="tab"><span>Debugger</span></a></li>
 				</ul>
-				<div id="brewhouse">
-					<div id="pot1" class="vesselBox"></div>
-					<div id="pot2" class="vesselBox"></div>
-					<div id="pot3" class="vesselBox"></div>
-					<br class="crystal" />
-				</div>
-				<div id="alehouse">
-					<div id="conical1" class="vesselBox"></div>
-					<div id="conical2" class="vesselBox"></div>
-					<br class="crystal" />
-				</div>
-				<div id="lagerhouse">
-					<div id="carboy1" class="vesselBox"></div>
-					<div id="carboy2" class="vesselBox"></div>
-					<br class="crystal" />
-				</div>
-				<div id="profilelibrary">
-					<div id="profiles">
-						<ul id="profilelist">
-							<li>Loading Profiles...</li>
+				<div id="mainTabContent" class="tab-content panel panel-default">
+
+					<!-- profile library -->
+					<div id="profiles" class="tab-pane active panel-body">
+						<ul id="profilelist" class="nav nav-pills nav-stacked col-md-3" brew-tabs>
+							<li ng-repeat="profile in profiles" class="{{selectedProfile.id == profile.id ? 'active' : ''}}"><a href="#profile_{{profile.id}}" ng-click="selectProfile(profile.id)" data-toggle="tab">{{profile.name}}</a></li>
 						</ul>
-						<div class="leftButtons">
-							<button id="addProfile_button">Add Profile</button>
+						<div id="profileDetail" class="col-md-9 panel panel-primary {{profileDetailClass}}">
+							<div class="tab-pane panel-body">
+								<div class="col-md-6">
+									<div class="form-group">
+										<label>Profile Name</label>
+										<p class="form-display">{{selectedProfile.name}}</p>
+										<input type="text" class="form-control" ng-model="selectedProfile.name" placeholder="Enter Profile Name">
+									</div>
+									<div id="profileEditDiv" brew-profile-table></div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label>Profile Type</label>
+										<p class="form-display">{{selectedProfile.type}}</p>
+										<select id="addProfile_type" class="form-control" ng-model="selectedProfile.type">
+											<option name="fermentation" id="fermentation">Fermentation</option>
+											<option name="mash" id="mash">Mash</option>
+										</select>
+									</div>
+									<div id="profileEditChartDiv" style="width:380px;height:270px;" brew-profile-chart></div>
+								</div>
+								<div id="saveProfile">
+									<button id="btnEditProf" class="btn btn-primary {{profileDetailClass}}" ng-click="editSelectedProfile()">Edit</button>
+									<button id="btnCancelEditProf" class="btn btn-secondary {{profileDetailClass}}" ng-click="cancelEditProfile()">Cancel</button>
+									<button id="btnSaveProf" class="btn btn-primary {{profileDetailClass}}" ng-click="saveSelectedProfile()">Save</button>
+								</div>
+							</div>
+							<div class="empty-prompt {{profileDetailClass}}">Pick a profile already</div>
 						</div>
 					</div>
-					<div id="profileDetails" class="ui-corner-all">
-						<div id="profileTableDiv">
-							<div id="profileTitle">Click a Profile on the left to see temperatures and events.</div>
-							<div id="profileStartDate"></div>
-							<div id="profileTable"></div>
-							<div id="profileChart" style="width:345px;"></div>
-							<br class="crystal" />
-						</div>
-					</div>
-					<div id="profileForm">
-						<div id="profileForm1">
-							<div>
-								<div class="label">Name</div>
-								<input type="text" id="addProfile_name" placeholder="Enter Name" />
+
+					<!-- app settings content -->
+					<div id="appsettings" class="tab-pane active panel-body">
+						<ul id="appsettingslist" class="nav nav-pills nav-stacked col-md-3" brew-tabs>
+							<li style="margin-top:10px;"><a href="#appsettings_lookfeel" class="active" data-toggle="tab">Look and Feel</a></li>
+							<li><a href="#appsettings_advanced" data-toggle="tab">Advanced</a></li>
+						</ul>
+						<div id="appsettingsMain" class="tab-content col-md-9 panel panel-primary">
+							<div id="appsettings_lookfeel" class="tab-pane active panel-body">
+								<div class="form-group">
+									<label for="exampleInputEmail1">Logo Path/URL</label>
+									<input type="text" class="form-control" ng-model="appsettings.breweryLogo" placeholder="Enter Logo URL">
+									<p class="help-block">Relative or absolute url to logo file - Best if sized ~ 3:1</p>
+								</div>
+								<div class="form-group">
+									<label for="exampleInputEmail1">UI Selected Style</label>
+									<input type="text" class="form-control" ng-model="appsettings.themeSelectedStyle" placeholder="Enter CSS Color">
+									<p class="help-block">The CSS definition of .ui-selected, for example: "background: #eee;" or "background: #343434; border: solid 1px #333</p>
+								</div>
 							</div>
-							<div>
-								<div class="label">Type</div>
-								<select id="addProfile_type">
-									<option name="fermentation" id="fermentation">Fermentation</option>
-									<option name="mash" id="mash">Mash</option>
-								</select>
+							<div id="appsettings_advanced" class="tab-pane panel-body">
+								<div class="form-group">
+									<label for="exampleInputEmail1">Theme Name</label>
+									<input type="text" class="form-control" ng-model="appsettings.themeStylesheet" placeholder="Enter Theme Name">
+									<p class="help-block">The name of a valid Bootstrap UI theme</p>
+								</div>
 							</div>
-						</div>
-						<div id="profileForm2">
-							<div>
-								<div class="label">StartDate</div>
-								<input type="text" id="addProfile_startdate" placeholder="Enter Start Date" />
-							</div>
-							<div>
-								<button type="button" id="profileEditNowButton">Start Now</button>
-								<button type="button" id="profileEditAddCurrentButton">Insert Now</button>
+							<div id="saveAppSettings">
+								<button class="btn btn-secondary" ng-click="getAppSettings()">Cancel</button>
+								<button class="btn btn-primary" ng-click="saveAppSettings()">Save</button>
 							</div>
 						</div>
 						<br class="crystal" />
-						<div id="profileSaveError">Error Saving Profile!</div>
-						<div id="profileEditDiv"></div>
-						<div id="profileEditChartDiv"></div>
 					</div>
-					<div id="profileDelete">
-						<div class="deleteWarning">
-							<div>Confirm you wish to delete profile:</div>
-						</div>
-						<div id="profileToDelete"></div>
-					</div>
-					<br class="crystal" />
-				</div>
-				<div id="iosettings">
-					<div id="controllers">
-						<ul id="controllerlist">
-							<li>Loading Controllers...</li>
-						</ul>
-						<div class="leftButtons">
-							<button id="addController_button">Add Controller</button>
-							<button id="showDeviceLogger">Logger</button>
-						</div>
-					</div>
-					<div id="chambers" class="ui-corner-all">
-						<ul id="chamberlist">
-							<li>Click a Controller on the left to see it's chambers.</li>
-						</ul>
-						<button id="addChamber_button">Add Chamber</button>
-					</div>
-					<div id="controllerForm">
-						<div>
-							<div class="label">Name</div>
-							<input type="text" id="addController_name" placeholder="Enter Name" />
-						</div>
-						<div>
-							<div class="label">Adress</div>
-							<input type="text" id="addController_address" placeholder="Enter Address" />
-						</div>
-						<div>
-							<div class="label">Port</div>
-							<input type="text" id="addController_port" placeholder="Enter Port" />
-						</div>
-						<div>
-							<div class="label">Socket</div>
-							<input type="text" id="addController_socket" placeholder="Enter Socket" />
-						</div>
-					</div>
-					<div id="chamberForm">
-						<div>
-							<div class="label">Name</div>
-							<input type="text" id="addChamber_name" placeholder="Enter Name" />
-						</div>
-					</div>
-					<div id="deviceForm">
-						<div>
-							<div class="label">Name</div>
-							<input type="text" id="addDevice_name" placeholder="Enter Name" />
-						</div>
-						<div>
-							<div class="label">Slot</div>
-							<input type="text" id="addDevice_slot" placeholder="Enter Slot" />
-						</div>
-						<div>
-							<div class="label">Function</div>
-							<input type="text" id="addDevice_function" placeholder="Enter Function" />
-						</div>
-						<div>
-							<div class="label">Hardware Type</div>
-							<input type="text" id="addDevice_hardwaretype" placeholder="Enter Hardware Type" />
-						</div>
-						<div>
-							<div class="label">Device Type</div>
-							<input type="text" id="addDevice_devicetype" placeholder="Enter Device Type" />
-						</div>
-					</div>
-					<div id="controllerDelete">
-						<div class="deleteWarning">
-							<div>Confirm you wish to delete controller:</div>
-						</div>
-						<div id="controllerToDelete"></div>
-					</div>
-					<div id="chamberDelete">
-						<div class="deleteWarning">
-							<div>Confirm you wish to delete chamber:</div>
-						</div>
-						<div id="chamberToDelete"></div>
-					</div>
-					<div id="deviceDelete">
-						<div class="deleteWarning">
-							<div>Confirm you wish to delete device:</div>
-						</div>
-						<div id="deviceToDelete"></div>
-					</div>
-					<br class="crystal" />
-				</div>
-				<div id="appsettings">
-					<div id="appsettingsGroups">
-						<ul id="appsettingslist">
-							<li data-groupid="appsettings_lookfeel"><a href="#" class="title">Look and Feel</a></li>
-							<li data-groupid="appsettings_advanced"><a href="#" class="title">Advanced</a></li>
-						</ul>
-					</div>
-					<div id="appsettingsMain" class="ui-corner-all">
-						<div id="appsettings_lookfeel" class="appsettingGroup">
-							<div class="settingsRow">
-								<div class="label">Logo Path/URL</div>
-								<div class="field"><input type="text" id="appsettings_logo" placeholder="Enter Logo URL" /></div>
-								<div class="desc">relative path or absolute url to a logo file.  best if sized ~ 348w x 96h</div>
-							</div>
-							<div class="settingsRow">
-								<div class="label">Theme Name</div>
-								<div class="field"><input type="text" id="appsettings_theme" placeholder="Enter Theme Name" /></div>
-								<div class="desc">The name of a valid jQuery UI theme available on google ajax apis (/jqueryui/1.10.3/themes/xxxx)</div>
-							</div>
-							<div class="settingsRow">
-								<div class="label">UI Selected Style</div>
-								<div class="field"><input type="text" id="appsettings_selectedcss" placeholder="Enter CSS Color" /></div>
-								<div class="desc">The CSS definition of .ui-selected, for example: "background: #eee;" or "background: #343434; border: solid 1px #333"</div>
-							</div>
-							<div class="settingsRow">
-								<button id="saveSettings_lookfeel">Save</button>
+
+					<!-- debugger content -->
+					<div id="debuggerDiv" class="tab-pane panel-body">
+						<div class="col-md-3">
+							<div style="margin:5px 0 5px 0;">Test Simulations</div>
+							<div id="debugTests">
+								<button class="btn btn-primary btn-block" ng-click="generateAlarms()">Generate Alarms</button>
+								<button class="btn btn-primary btn-block" ng-click="generateLogs()">Generate Logs</button>
 							</div>
 						</div>
-						<div id="appsettings_advanced" class="appsettingGroup">
-							<div>
-								<div class="label">TODO: Advanced Settings Impl</div>
-								<div class="field"><input type="text" id="appsettings_xxx" placeholder="Enter XXX" /></div>
-								<div class="desc">xxx xxx xxx xxx xxx xxx xxx xxx</div>
+						<div class="col-md-9 panel panel-primary">
+							<div id="publish" class="panel-body">
+								<div class="form-group">
+									<label for="exampleInputEmail1">Publish a message to a channel</label>
+									<textarea id="postThisMsg" class="form-control" ng-model="debug.postMessage" rows="7"></textarea>
+									<p class="help-block">Enter message json and select a channel, an example of an alarm message:</p>
+									<p class="help-block">{ "channel": "alarms", "payload": { "alarms": [ { "source": "system" , "code": 1001, "msg": "DANGER! DANGER!" } ] } }</p>
+									<span id="postThisChanLabel">Channel</span>&#160;<select ng-model="debug.postChannel">
+										<option>data</option>
+										<option>chart</option>
+										<option>logs</option>
+										<option>alarms</option>
+									</select>
+									<button class="btn btn-primary btn-sm" ng-click="debuggerPostMessage()">submit</button>
+								</div>
+								<br class="crystal" />
 							</div>
 						</div>
-					</div>
-					<br class="crystal" />
-				</div>
-				<div id="debuggerDiv">
-					<div id="publish" class="ui-corner-all">
-						<div class="instructions"><div>Publish a message to a channel</div></div>
-						<textarea id="postThisMsg"></textarea>
-						<span id="postThisChanLabel">Channel</span>&#160;<select id="postThisChan">
-							<option>data</option>
-							<option>chart</option>
-							<option>logs</option>
-							<option>alarms</option>
-						</select>
-						<button id="postThisBtn" type="button">submit</button>
-						<br class="crystal" />
-					</div>
-					<div id="debug" class="ui-corner-all">
-						<div class="instructions"><div>Debug Messages</div></div>
-						<div id="debugger"></div>
-						<br class="crystal" />
-					</div>
-					<br class="crystal" />
-					<div style="margin:5px 0 5px 0;">Test Simulations</div>
-					<div id="debugTests">
-						<button id="test-alarm-generate">Generate Alarm</button>
-						<button id="test-alarm-ack">Ack Alarms</button>
-						<button id="test-mash">Mash simulation</button>
-						<button id="test-aleferm">Ale Chamber simulation</button>
-						<button id="test-lagerferm">Lager Chamber simulation</button>
-						<button id="test-addio">Add Controllers/Devices</button>
-						<button id="test-addprof">Add Profiles</button>
-						<button id="test-devlogs">Generate Logs</button>
-						<button id="test-appsetlogo">App Settings: Logo</button>
-						<button id="test-appsetlogotheme">App Settings: Logo/Theme</button>
 					</div>
 				</div>
 			</div>
-			<div id="logsDiv" title="Device Logger"></div>
-		</div>
-		<br class="crystal" />
-	</div>
+
+			<!-- modal dialog for device logs -->
+			<div id="deviceLogs" class="modal fade" tabindex="-1">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h4 class="modal-title" id="myModalLabel">Device Logs</h4>
+						</div>
+						<div class="modal-body" brew-auto-scroll>
+      						<div ng-repeat="entry in deviceLogEntries">
+							{{ entry.msg + '(' + entry.source + ')' }}
+							</div>
+						</div>
+						<div class="modal-footer">
+						 	<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div><!-- mainBottom -->
+	</div><!-- main -->
+
+	<!--<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.17/angular.min.js"></script>-->
+	<script src="js/angular-1.2.17.js"></script>
+	<script src="js/jquery-1.10.2.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/dygraph-combined.js"></script>
+	<script src="js/maelstrom.js"></script>
+	<script src="js/maelstrom-profile.js"></script>
+	<script src="js/app.js"></script>
+	<script src="js/services.js"></script>
+	<script src="js/controllers.js"></script>
 </body>
 </html>

@@ -1,7 +1,8 @@
 import simplejson as json
 
-from tornado import websocket
 from tornado.web import RequestHandler
+from tornado.websocket import WebSocketHandler
+
 
 #   connection and subscription manager
 ###################################################
@@ -67,7 +68,7 @@ theMan = ConnectionMgr()
 # websocket handler supporting sub/unsub to channels (topics)
 ###################################################
 
-class ClientSocket(websocket.WebSocketHandler):
+class ClientSocket(WebSocketHandler):
     def open(self):
         theMan.addConnection(self)
         print "WebSocket opened"

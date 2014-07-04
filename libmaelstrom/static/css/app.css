@@ -1,107 +1,50 @@
-BODY { font-family: arial, helvetica; font-size: 12px; }
-.crystal { clear:both; }
-UL { list-style-type: none; }
+html,body{ height: 100% }
+body { font-family: arial, helvetica; font-size: 12px; }
+ul { list-style-type: none; }
 a, a:hover { text-decoration: none; }
-#main { width:1000px; }
+.crystal { clear:both; }
 
-#mainTop { width:100%; border:solid 1px #aaa; padding:10px; border-top-left-radius: 4px; border-top-right-radius: 4px; }
+#main { max-width:1200px; padding:10px; }
+#mainTabNav { border-bottom: 0px; }
+#mainTabNav li:first{ margin-left: 10px; !important }
+#mainTabContent { min-height: 300px; border: 1px solid #ddd; }
 
 #lcdDiv { 
-	background:#458B00; 
-	color:#ffff77; 
-	border:solid 7px #333; 
-	font-size:18px; 
-	height:106px; 
-	width:276px; 
-	padding:10px; 
-	float:left;
+	height:130px;
+	border-radius:5px;
+	padding:10px;
 }
-#lcdDiv div { 
-	font-family: monospace;
-	white-space: pre;
-}
-#lcdDiv.disabled { 
-	background:#326400 
-}
+
 #logoDiv {
-	float:left;
 	height:140px;
 	padding:0 10px; 
-	width:360px;
 }
-#logo {}
-#connStatus { margin: 10px 0 0 0; }
-#connStatusLight { 
-	margin:5px 0 0 0; 
-	height:18px; 
-	width:18px; 
-	border-radius: 10px; 
-	border: solid 1px black; 
-	background: #777; 
-}
-#connStatusLight.connected { 
-	background: green; 
-}
-#connStatusLight.disconnected { 
-	background: red; 
-}
-#connStatusLight, #connStatusMessage { float:left; margin: 0 5px 0 0; font-weight: bold; }
-#connStatusMessage { margin:4px 5px 0 0; }
-#reconnect { display:none; }
+#connStatus { height:18px; margin: 5px 0 0 0; }
+#connStatusLight { height:18px; width:18px; border-radius: 10px; border: solid 1px black; background: #777; }
+#connStatusLight.connected { background: green; }
+#connStatusLight.disconnected { background: red; }
+#connStatusLight, #connStatusMessage { float:left; margin:0; font-weight: bold; }
+#connStatusMessage { margin:0 0 0 5px; }
+#reconnect { float:right; }
+#reconnect.connected { display:none; }
 #alarmsAck { display:none; float:right; }
 #alarmsAck span { padding:3px 5px; }
 #alarmsAck.alarm { display:block; }
 
-#alarmsDiv { 
-	background: #000; 
-	border:3px solid #777; 
-	color: red; 
-	height:114px; 
-	width:284px; 
-	padding:10px; 
-	float:right; 
-	overflow:auto; 
-}
-#alarmsDiv.alarm { 
-	background: #fef1ec;
-	border-color:#cd0a0a;
-}
-#alarmsDiv.disabled { 
-	background: #666; 
-	border-color:#666; 
-	color: #222;
-}
+#alarmsDiv { height:130px; border-radius:5px; padding:10px; overflow:auto; }
 
-#mainBottom { width:100%; border:solid 1px #aaa; border-top:0px; padding:10px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
+#appsettingslist, #profilelist { min-height: 300px; padding:10px 0 0 0; margin:0; }
+#appsettingslist li a, #profilelist li a { border-top-right-radius: 0px; border-bottom-right-radius: 0px; }
+#appsettingsMain, #profileDetail { min-height: 400px; position:relative; }
+#saveAppSettings, #saveProfile { bottom:15px; right:25px; position:absolute; }
 
-.vesselBox { 
-	height:410px; 
-	width:280px; 
-	padding:0; 
-	margin:0; 
-	float:left; 
-}
+#profileDetail.empty .panel-body { display:none; }
+#profileDetail.edit .form-display { display:none; }
+#profileDetail.edit .empty-prompt, #profileDetail.readonly .empty-prompt { display:none; }
+#profileDetail.readonly .form-control { display:none; }
 
-#publish { width:49%; height:200px; border:0; margin:0; padding:0; float:left; border:1px solid #aaa; }
-#debug { width:49%; height:200px; border:0; margin:0; padding:0; float:right; border:1px solid #aaa; }
-#debugger { height:168px; margin:5px; overflow: auto; }
-.instructions { width:100%; height:20px; background:#e9e9e9; }
-.instructions div { padding:5px 10px 5px; }
-#postThisMsg { height:100px; width: 95%; margin: 5px; }
-#postThisChan { width:200px; margin: 5px; }
-#postThisChanLabel { margin-left: 5px; }
-#logsDiv { background:#000; color:#eee; padding:10px; margin:0; overflow:auto; display:none; }
-#logsDiv.disabled { background:#333; color:#777;  }
-
-#controllerForm, #chamberForm, #deviceForm, #profileForm, #controllerDelete, #chamberDelete, #deviceDelete, #profileDelete { display: none; }
-
-.title { padding:0 0 0 10px; margin:0; }
-
-#appsettingslist li { padding:10px; }
-
-#profileTableDiv { padding:10px; margin:0; }
-#profileTable, #profileChart { float:left; width:345px; background: #f7f7f7;}
-#profileEditDiv, #profileEditChartDiv, #profileForm1, #profileForm2 { float:left; width:47%; }
+#profileDetail.edit #btnEditProf, #profileDetail.empty #btnEditProf {display: none; }
+#profileDetail.readonly #btnCancelEditProf, #profileDetail.readonly #btnSaveProf, #profileDetail.empty #btnCancelEditProf, #profileDetail.empty #btnSaveProf {display: none; }
 
 .profileTableMenu {
     position: absolute;
@@ -113,69 +56,4 @@ a, a:hover { text-decoration: none; }
 .profileTableMenu UL LI { margin: 0; padding: 5px; border: 1px solid #fff; border-bottom: 1px solid #ccc; cursor:pointer; cursor:hand; }
 .profileTableMenu UL LI:last-child { border-bottom: 1px solid #fff; }
 .profileTableMenu UL LI:hover { color:#fff; border: 1px solid #4297d7; background: #5c9ccc; }
-
-#controllerlist, #profilelist, #appsettingslist { padding:0; margin:0; }
-#controllerlist li, #profilelist li { padding:4px; margin:0; }
-#controllerlist li, #profilelist li, #appsettingslist li { border-top-left-radius: 4px; border-bottom-left-radius: 4px; border-right:0; }
-#controllerForm div.label { width:75px; float:left; }
-
-#controllers, #chambers, #profiles, #profileDetails, #appsettingsGroups, #appsettingsMain { float:left; padding:0; margin:0; min-height: 300px; }
-#controllers, #profiles, #appsettingsGroups { width:258px; padding:10px 0 10px 0; }
-#chambers, #profileDetails, #appsettingsMain { width:710px; }
-
-#chamberlist { padding:10px 0 10px 0; margin:0; }
-#chamberlist li { padding:2px 0 10px 10px; margin:0; }
-#chamberlist li span.title { cursor:hand; cursor:pointer; }
-#addChamber_button { display: none; margin:0 0 10px 10px; }
-
-#chamberlist li ul li { background: #fff; }
-#chamberlist li ul li span { padding:0 0 10px 10px; }
-
-.deviceConfigTable { width:97%; font-size:10px; margin:10px 20px 0 10px; }
-.deviceConfigTable th { padding: 5px 10px; text-align:left; background:#fff; }
-.deviceConfigTable td { padding: 5px 10px; background:#fff; }
-
-.appsettingGroup { display:none; padding:10px; }
-.appsettingGroup.selected { display:block; }
-
-.settingsRow { clear:both; padding-top:20px;}
-.settingsRow .label, .settingsRow .field, .settingsRow .desc{ float:left; }
-.settingsRow .label { width:200px; margin-left:10px; }
-.settingsRow .field { float:left; width:200px; }
-.settingsRow .desc { float:left; width:272px; }
-
-.deleteWarning { color: red; }
-.leftButtons { margin:20px 0 0 0; }
-
-/* make sure buttons (Save/Cancel) are on the bottom of all panes, even with floats in the pane */
-.ui-dialog .ui-dialog-buttonpane { clear: both; }
-
-.ui-tabs .ui-tabs-panel {
-    padding: 10px;
-}
-
-/* css for timepicker */
-
-.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
-.ui-timepicker-div dl { text-align: left; }
-.ui-timepicker-div dl dt { height: 25px; margin-bottom: -25px; }
-.ui-timepicker-div dl dd { margin: 0 10px 10px 65px; }
-.ui-timepicker-div td { font-size: 90%; }
-.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
-
-.ui-timepicker-rtl{ direction: rtl; }
-.ui-timepicker-rtl dl { text-align: right; }
-.ui-timepicker-rtl dl dd { margin: 0 65px 10px 10px; }
-
-.profileTableEdit { margin:0; border:1px solid #ccc; border-right: 0; border-bottom: 0; width:100%; border-collapse:separate; border-spacing: 0; }
-.profileTableEdit tbody TR.odd { background:#f7f7f7; }
-.profileTableEdit tbody TR.even { background:#fff; }
-.profileTableEdit tbody TR:hover { background: #ddeeff; }
-.profileTableEdit tbody TR.selected { background: #bbddff; }
-.profileTableEdit tbody TR.error { background: #fef1ec; border:1px solid #cd0a0a; color: #cd0a0a; }
-.profileTableEdit TD, .profileTableEdit TH { padding: 3px; height: 1em;}
-.profileTableEdit TD { text-align:center; }
-.profileTableEdit TD { border-bottom: solid 1px #ccc; border-right: solid 1px #ccc; }
-.profileTableEdit TH { border-right: solid 1px #fff; }
-.profileTableEdit TH:last-child { border-right: 0 }
 

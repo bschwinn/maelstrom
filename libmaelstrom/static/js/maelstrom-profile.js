@@ -6,23 +6,23 @@
  *   theadClass: "<css class name for thead>",
  *   tbodyClass: "<css class name for tbody>",
  *   editable: true|false,
- *   startDateFieldSelector: "<css selector for start date field>",
  *   contextMenuCssClass: "<context menu class>",
  *   contextMenuDisplayHandler: "<context menu shown/hidden event handler>"
  * }
  */
 
-function TemperatureProfileTable(id, config) {
+function TemperatureProfileTable(id, startDate, config) {
     "use strict";
     if (arguments.length > 0 ) {
-        this.init(id, config);
+        this.init(id, startDate, config);
     }
 }
 
 TemperatureProfileTable.prototype = {
-    init: function(id, config) {
+    init: function(id, startDate, config) {
         "use strict";
         this.id = id;
+        this.startDate = startDate;
         this.profileName = '';
         this.config = (config || {});
         this.config.timeFormat = 'HH:mm:ss';
@@ -49,8 +49,9 @@ TemperatureProfileTable.prototype = {
         this.renderRows(data.temperatures);
         this.renderFooter();
         // start date inferred from first data row, if not present (empty profile), use current date/time
-        var initialDate = this.parseStartDate(data.temperatures);
-        this.updateDisplay( initialDate );
+        // var initialDate = this.parseStartDate(data.temperatures);
+        // this.updateDisplay( initialDate );
+        this.updateDisplay( this.startDate );
     },
     prepTable: function() {
         "use strict";
@@ -109,7 +110,7 @@ TemperatureProfileTable.prototype = {
     insertRowNow: function() {
         "use strict";
         var nowTime = new Date().getTime();
-        var timeDiff = nowTime - this.getStartDate().getTime();
+        var timeDiff = nowTime - this.startDate().getTime();
         var days = (timeDiff / this.numMilliSecondsPerDay).toFixed(2);
         var rows = this.getProfileData();
         var rowIndex = rows.length - 1;
@@ -229,14 +230,10 @@ TemperatureProfileTable.prototype = {
     },
     updateDisplay: function(initialDate) {
         "use strict";
-        var theDate;
         if ( initialDate != null ) {
-            theDate = initialDate;
-            this.setStartDate(initialDate);
-        } else {
-            theDate = this.getStartDate();
+            this.startDate = initialDate;
         }
-        if ( theDate != null ) {
+        if ( this.startDate != null ) {
             // ensure up to date row index - used in sorting
             var rowIdx = 0;
             $(this.rowsSelector).each(function() {
@@ -258,23 +255,26 @@ TemperatureProfileTable.prototype = {
             var idx = 0;
             var that = this;
             $.each(rows, function(index, row) {
+                // calc next date with current duration (days)
                 var strDays = $(row).find("td.profileDays").text();
                 if ( typeof( strDays ) !== "undefined" && strDays !== '' ) {
-                    var dates = that.formatNextDate(theDate, strDays);
+                    var dates = that.formatNextDate(that.startDate, strDays);
                     $(this).find("td.profileDate").text( dates.display ).data('profile-date', dates.raw);
                 }
+                // striping/styling
                 var add = 'even';
                 var rmv = 'odd';
                 if ( idx % 2 === 1 ) {
                     add = 'odd';
                     rmv = 'even';
                 }
-                $(row).addClass(add).removeClass(rmv).removeClass("selected").data('rowIndex', idx); // piggy back on loop here to set row index, used for positioning in insert/delete rows
+                $(row).addClass(add).removeClass(rmv).removeClass("selected").data('rowIndex', idx); // keep rowIndex up to date, used for positioning in insert/delete rows
+                // simply re-append row, existing rows will be moved to the last position
                 $(that.bodySelector).append(row);
                 idx++;
             });
         }
-        if ( typeof(this.config.chartUpdateCallBack) !== "undefined") {
+        if ( this.config.chartUpdateCallBack != null && typeof(this.config.chartUpdateCallBack) !== "undefined") {
             this.config.chartUpdateCallBack();
         }
     },
@@ -296,60 +296,22 @@ TemperatureProfileTable.prototype = {
         var t1 = theDate.getTime();
         var t2 = parseInt(this.numMilliSecondsPerDay * days, 10);
         var newDate = new Date( t1 + t2 );
-        return this.formatDate(newDate);
+        return { raw: this.formatDate(newDate), display: this.formatDateDisplay(newDate) };
     },
     formatDate: function(theDate) {
         "use strict";
-        var strDate = $.datepicker.formatDate(this.config.dateFormat, theDate);
-        var strDate2 = $.datepicker.formatDate(this.config.dateFormatDisplay, theDate);
-        var h = theDate.getHours();
-        var m = theDate.getMinutes();
-        var s = theDate.getSeconds();
-        var strTime = ( (h<10) ? '0' + h : h ) + ':' + ( (m<10) ? '0' + m : m ) + ':' + ( (s<10) ? '0' + s : s );
-        return { raw: strDate + 'T' + strTime, display: strDate2 + ' ' + strTime };
+        return theDate.toISOString();
     },
-    parseStartDate: function(profile) {
+    formatDateDisplay: function(theDate) {
         "use strict";
-        if ( typeof( profile ) !== "undefined" && profile.length > 0 && typeof( profile[0].date ) !== "undefined" ) {
-            return this.parseDate(profile[0].date);
-        }
-        return new Date();
-    },
-    parseDate: function(strDate, forDisplay) {
-        "use strict";
-        var dateFormat = (forDisplay === true) ? this.config.dateFormatDisplay : this.config.dateFormat;
-        try {
-            var d = $.datepicker.parseDateTime(dateFormat, this.config.timeFormat, strDate, null, {separator: "T"});
-            return d;
-        } catch(e) {
-            console.log('invalid start date: ' + strDate + ', using current date/time' );
-            return 0;
+        if ( this.config.displayDateFormatter != null ) {
+            return this.config.displayDateFormatter(theDate);
+        } else {
+            return theDate.toString();
         }
     },
-    getStartDate: function() {
-        "use strict";
-        if ( typeof( this.config.startDateFieldSelector ) !== "undefined" && this.config.startDateFieldSelector !== '' ) {
-            var startDate = (this.config.editable) ? $(this.config.startDateFieldSelector).val() : $(this.config.startDateFieldSelector).text();
-            if ( typeof( startDate ) !== "undefined" && startDate !== '' ) {
-                try {
-                    return $(this.config.startDateFieldSelector).datepicker( "getDate" );
-                } catch(e) {
-                    console.log("error calculating dates: " + e.message);
-                }
-            }
-        }
-        return null;
-    },
-    setStartDate: function(theDate) {
-        "use strict";
-        if ( typeof( this.config.startDateFieldSelector ) !== "undefined" && this.config.startDateFieldSelector !== '' ) {
-            var formattedDates = this.formatDate(theDate);
-            if ( this.config.editable ) {
-                $(this.config.startDateFieldSelector).val( formattedDates.display ).data('profile-date', formattedDates.raw );
-            } else {
-                $(this.config.startDateFieldSelector).text( formattedDates.display ).data('profile-date', formattedDates.raw );
-            }
-        }
+    parseDate: function(strDate){
+        return new Date(strDate);
     },
     selectAll: function(elem) {
         "use strict";
@@ -373,7 +335,9 @@ TemperatureProfileTable.prototype = {
         var points = [];
         var me = this;
         $(this.rowsSelector).each(function() {
-            points[points.length] = { days : $(this).find('td.profileDays').text(), temperature: $(this).find('td.profileTemp').text(), date: $(this).find('td.profileDate').data('profileDate') };
+            var d = $(this).find('td.profileDate').data('profile-date');
+            if ( d != null ) d = d.substr(0,d.indexOf('.')); // trim off millis and zone
+            points[points.length] = { days : $(this).find('td.profileDays').text(), temperature: $(this).find('td.profileTemp').text(), date: d };
             if ( me.config.editable && points[points.length-1].days == '' ) {
                 points.pop();  // remove last row if its blank and we are editing
             }
@@ -470,34 +434,38 @@ Dygraph.SHORT_SPACINGS[Dygraph.EVERY2DAYS]    = 2 * _1DAY;
 Dygraph.SHORT_SPACINGS[Dygraph.EVERY3DAYS]    = 3 * _1DAY;
 Dygraph.SHORT_SPACINGS[Dygraph.EVERY4DAYS]    = 4 * _1DAY;
 
-TemperatureProfileChart = {
 
-    drawChart: function(divId, profTable) {
+function TemperatureProfileChart(id, dateFormatter, temperatureFormatter) {
+    "use strict";
+    if (arguments.length > 0 ) {
+        this.init(id, dateFormatter, temperatureFormatter);
+    }
+}
 
-        var temperatureFormatter = function(y) {
-            return parseFloat(y).toFixed(2) + "\u00B0 " + window.tempFormat;
-        };
-        var dateTimeFormatter = function (x) {
-            return profTable.formatDate(x).display;
-        };
+TemperatureProfileChart.prototype = {
+    init: function(id, dateFormatter, temperatureFormatter) {
+        "use strict";
+        this.id = id;
+        this.dateFormatter = dateFormatter;
+        this.temperatureFormatter = temperatureFormatter;
+    },
+    drawChart: function(profileDuration, profileData) {
 
         var chartConfig = {
             colors: [ 'rgb(0, 0, 0)' ],
             axisLabelFontSize:12,
             gridLineColor:'#ccc',
             gridLineWidth:'0.1px',
-            //labelsDiv: document.getElementById(divId + "-label"),
-            //legend: 'always',
             labelsDivStyles: { 'textAlign': 'right' },
             strokeWidth: 1,
             xValueParser: function(x) { 
-                return profTable.parseDate(x);
+                return new Date(x);
             },
             underlayCallback: this.updateCurrentDateLine,
             "Temperature" : {},
             axes: {
-                y : { valueFormatter: temperatureFormatter },
-                x : { valueFormatter: dateTimeFormatter }
+                y : { valueFormatter: this.temperatureFormatter },
+                x : { valueFormatter: this.dateFormatter }
             },
             highlightCircleSize: 2,
             highlightSeriesOpts: {
@@ -508,16 +476,14 @@ TemperatureProfileChart = {
             yAxisLabelWidth: 35
         };
         var that = this;
-        var profileDuration = profTable.getProfileDuration();
         if ( profileDuration < 28) {
             chartConfig.axes.x.ticker = function(a, b, pixels, opts, dygraph, vals) {
                 return Dygraph.getDateAxis(a, b, that.calculateXAxisTicks(profileDuration), opts, dygraph);
             };
         }
-        var profData = profTable.toCSV(true, ['date', 'temperature']);
         var chart = new Dygraph(
-            document.getElementById(divId),
-            profData,
+            document.getElementById(this.id),
+            profileData,
             chartConfig
         );
     },

@@ -2,13 +2,6 @@
  *********** Main Maelstrom Library ***********
  **********************************************/
 
-_maelGetRootUrl = function() {
-	return window.location.protocol + '//' + window.location.host;
-}
-_maelGetRootUrlWS = function() {
-	var isSecure = ( window.location.protocol.indexOf('https') > -1 );
-	return ((isSecure) ? 'wss:' : 'ws:') + '//' + window.location.host;
-}
 
 // maelstrom socket connection and pub/sub
 var Maelstrom = function(config) {
@@ -17,13 +10,15 @@ var Maelstrom = function(config) {
 Maelstrom.prototype = {
 	init: function(config) {
 		this.config = config;
-		this.socketUrl = _maelGetRootUrlWS() + '/socket';
-		this.sendUrl = _maelGetRootUrl() + '/publish';
+		this.socketUrl = ( (window.location.protocol.indexOf('https') > -1) ? 'wss:' : 'ws:') + '//' + window.location.host + '/socket';
+		this.sendUrl = '/publish';
 		this.heartBeatTime = 10000;
 		this.heartBeatSkips = 0;
 		this.heartBeatMaxSkips = 2;
 		this.heartBeatCheckTimer = null;
 		this.heartBeatPingTimer = null;
+		this.handlers = { 'open' : [], 'closed' : [], 'message' : [], '_appsettings' : [], '_profiles' : [] };
+		this.connected = false;
 		this.connect();
 	},
 	connect: function(channel) {
@@ -40,13 +35,39 @@ Maelstrom.prototype = {
 			that.onClose();
 	    };
 	},
+	subscribe: function(channel) {
+		this.ws.send( '{ "action": "subscribe", "channel": "' + channel + '" }' );
+	},
+	unsubscribe: function(channel) {
+		this.ws.send( '{ "action": "unsubscribe", "channel": "' + channel + '" }' );
+	},
+	postMessage: function(channel, message) {
+		var postData = {data: JSON.stringify(message), channel: channel};
+		$.post(this.sendUrl, postData, function(){});
+	},
+	addHandler: function(evt, callback) {
+		if ( /open|closed|message|_appsettings|_profiles/.test(evt) ) {
+			this.handlers[evt].push(callback);
+		} else {
+			this.logMessage("Unsupported handler: " + evt);
+		}
+	},
+
+	// internal stuff
+	fireHandler: function(evt, data) {
+		if ( this.handlers[evt].length > 0 ) {
+			for(var i=0; i < this.handlers[evt].length; i++) {
+				this.handlers[evt][i].call(this, data);
+			}
+		}
+	},
 	createHeartBeatChecker: function() {
 		var that = this;
 		this.heartBeatCheckTimer = window.setTimeout( function() {
-			console.log("heartbeat missed ! #" + that.heartBeatSkips);
+			that.logMessage("heartbeat missed ! #" + that.heartBeatSkips);
 			if ( that.heartBeatSkips >= (that.heartBeatMaxSkips-1) ) {
-				console.log("heartbeat missed max times !!!! #" + that.heartBeatSkips);
-				$(document).trigger( 'maelstromDisconnected', { status: 'disconnected', statusMsg: 'Maelstrom client disconnected from server.' } );
+				that.logMessage("heartbeat missed max times !!!! #" + that.heartBeatSkips);
+				this.fireHandler('closed', { status: 'disconnected', statusMsg: 'Maelstrom client disconnected from server.' } );
 			} else {
 				that.createHeartBeatChecker();
 				that.heartBeatSkips++;
@@ -64,23 +85,13 @@ Maelstrom.prototype = {
 			that.createHeartBeatChecker();
 		}, this.heartBeatTime);
 	},
-	subscribe: function(channel) {
-		this.ws.send( '{ "action": "subscribe", "channel": "' + channel + '" }' );
-	},
-	unsubscribe: function(channel) {
-		this.ws.send( '{ "action": "unsubscribe", "channel": "' + channel + '" }' );
-	},
 	sendHeartBeatPing: function() {
 		try {
 			this.ws.send( '{ "action": "ping", "channel": "_heartbeat" }' );
 		} catch(err) {
-			$(document).trigger( 'maelstromDisconnected', { status: 'disconnected', statusMsg: 'Maelstrom client disconnected from server.' } );
-			console.log("Error sending heartbeat, we must be disconnected.");
+			this.logMessage("Error sending heartbeat, we must be disconnected.");
+			this.fireHandler('closed', { status: 'disconnected', statusMsg: 'Maelstrom client disconnected from server.' } );
 		}
-	},
-	postMessage: function(channel, message) {
-		var postData = {data: JSON.stringify(message), channel: channel};
-		$.post(this.sendUrl, postData, function(){});
 	},
 	onOpen: function() {
 		var that = this;
@@ -89,241 +100,93 @@ Maelstrom.prototype = {
 			that.createHeartBeatChecker();
 		}, this.heartBeatTime);
 		this.logMessage("Maelstrom client connected");
-		$(document).trigger( 'maelstromConnected', { status: 'connected', statusMsg: 'Maelstrom client connected to server.' } );
+		this.fireHandler('open', { status: 'connected', statusMsg: 'Maelstrom client connected to server.' } );
 	},
 	onClose: function() {
-		this.logMessage("Maelstrom client disconnected");
 		window.clearTimeout(this.heartBeatCheckTimer);
 		window.clearTimeout(this.heartBeatPingTimer);
-		$(document).trigger( 'maelstromDisconnected', { status: 'disconnected', statusMsg: 'Maelstrom client disconnected from server.' } );
+		this.logMessage("Maelstrom client disconnected");
+		this.fireHandler('closed', { status: 'disconnected', statusMsg: 'Maelstrom client disconnected from server.' } );
 	},
 	onMessage: function(event) {
-		var env = $.parseJSON(event.data);
-		var msg = $.parseJSON(env.data);
+		var env = JSON.parse(event.data);
+		var msg = JSON.parse(env.data);
 		if ( env.channel == "_heartbeat" ) {
 			this.resetHeartBeatTimer();
 			this.logMessage("Heartbeat OK");
-		} else {
-			$(document).trigger( 'maelstromChannelMessage-' + env.channel, msg );
+		} else if ( env.channel.split('')[0] == "_" ) { // internal channels start with "_"
 			this.logMessage(env.data + ' (' + env.channel + ')');
+			this.fireHandler(env.channel, { channel: env.channel, message: msg.payload } );
+		} else {
+			this.logMessage(env.data + ' (' + env.channel + ')');
+			this.fireHandler('message', { channel: env.channel, message: msg.payload } );
 		}
 	},
 	logMessage: function(msg) {
-		if ( this.config.debugEnabled === true && this.config.debugDivId != '' ) {
-		    $('#' + this.config.debugDivId).append('<div>' + msg + '</div>').scrollTop(999999);
-		}
+		console.log(msg);
 	}
 };
 
 // maelstrom application settings api
-var MaelstromAppSettings = function(mael) {
-	if ( arguments.length > 0 ) this.init(mael);
+var MaelstromAppSettings = function(mael, loadedHandler, changeHandler) {
+	if ( arguments.length > 0 ) this.init(mael, loadedHandler, changeHandler);
 }
 MaelstromAppSettings.prototype = {
-	url: _maelGetRootUrl() + '/appsettings',
+	url: '/appsettings',
 	localKeyPrefix: 'maelstromAppSettings-',
-	init: function(mael) {
+	changeHandler: null,
+	loadedHandler: null,
+	init: function(mael, loadedHandler, changeHandler) {
+		this.loadedHandler = loadedHandler;
+		this.changeHandler = changeHandler;
 		mael.subscribe('_appsettings');
-		$(document).bind( 'maelstromChannelMessage-_appsettings', function(ev, message) {
-			console.log("app settings: " + message.payload.eventType);
-			var p = { eventType: message.payload.eventType, settings: message.payload.settings };
-			$(document).trigger( 'maelstromAppSettingChange', p );
+		mael.addHandler('_appsettings', function(ev, message) {
+			this.changeHandler.call( this, { eventType: message.payload.eventType, settings: message.payload.settings } );
 		});
+		this.getSettings();
 	},
 	getSettings: function() {
 		var that = this;
 		$.get(this.url, function(data) {
-			$(document).trigger( 'maelstromAppSettingsLoaded', { settings: $.parseJSON(data) } );
+			if ( that.loadedHandler != null) that.loadedHandler.call(that, { settings: JSON.parse(data) } );
 		});
 	},
 	saveSetting: function(name, val) {
 		$.post(this.url, { name: name, "value": val }, function(data) {
 			console.log("Setting: " + name + ", has been saved.");
 		});
-	},
+  	},
 	saveSettings: function(settings) {
 		$.post(this.url, { settings: JSON.stringify(settings) }, function(data) {
 			console.log("Settings has been saved.");
 		});
-	},
-	getLocalSettings: function() {
-		var settings = {};
-		for(var i = 0; i < localStorage.length; i++) {
-		    var k = localStorage.key(i);
-		    if ( k.indexOf(this.localKeyPrefix) == 0 ) {
-		    	var newK = k.substring(this.localKeyPrefix.length);
-		    	settings[newK] = localStorage.getItem(k);
-		    }
-		}
-		return settings;
-	},
-	saveLocalSetting: function(name, val) {
-		localStorage.setItem('maelstromAppSettings-' + name, val);
 	}
 };
 
-// maelstrom io/device configuration
-var MaelstromIOSettings = function(mael) {
-	if ( arguments.length > 0 ) this.init(mael);
-}
-MaelstromIOSettings.prototype = {
-	urlControllers: _maelGetRootUrl() + '/iocontrollers',
-	urlController: _maelGetRootUrl() + '/iocontroller',
-	urlChambers: _maelGetRootUrl() + '/iochambers',
-	urlChamber: _maelGetRootUrl() + '/iochamber',
-	urlDevices: _maelGetRootUrl() + '/iodevices',
-	urlDevice: _maelGetRootUrl() + '/iodevice',
-	init: function(mael) {
-		mael.subscribe('_iocontrollers');
-		mael.subscribe('_iochambers');
-		mael.subscribe('_iodevices');
-		$(document).bind( 'maelstromChannelMessage-_iocontrollers', function(ev, message) {
-			console.log("io controller change: " + message.payload.eventType);
-			var p;
-			if (message.payload.eventType != "delete") {
-				p = { eventType: message.payload.eventType, controllerId: message.payload.controller.id, controller: message.payload.controller };
-			} else {
-				p = { eventType: message.payload.eventType, controllerId: message.payload.controllerId };
-			}
-			$(document).trigger( 'maelstromIOControllerChange', p );
-		});
-		$(document).bind( 'maelstromChannelMessage-_iochambers', function(ev, message) {
-			console.log("io chamber change: " + message.payload.eventType);
-			var p;
-			if (message.payload.eventType != "delete") {
-				p = { eventType: message.payload.eventType, controllerId: message.payload.chamber.controllerId, chamberId: message.payload.chamber.id, chamber: message.payload.chamber };
-			} else {
-				p = { eventType: message.payload.eventType, controllerId: message.payload.controllerId, chamberId: message.payload.chamberId };
-			}
-			$(document).trigger( 'maelstromIOChamberChange', p );
-		});
-		$(document).bind( 'maelstromChannelMessage-_iodevices', function(ev, message) {
-			console.log("io device change: " + message.payload.eventType);
-		});
-	},
-	getControllers: function(handler) {
-		var that = this;
-		$.get(this.urlControllers, function(data) {
-			if ( typeof(handler) !== 'undefined' ) {
-				handler($.parseJSON(data));
-			} else {
-				$(document).trigger( 'maelstromIOControllersLoaded', { controllers: $.parseJSON(data) } );
-			}
-		});
-	},
-	getController: function(id) {
-		var that = this;
-		$.get(this.urlController+'/'+id, function(data) {
-			$(document).trigger( 'maelstromIOControllerLoaded', { controller: $.parseJSON(data) } );
-		});
-	},
-	deleteController: function(controllerId) {
-		$.ajax({
-			url: this.urlController+'/'+controllerId, 
-			type: "delete", 
-			success: function(data) {
-				console.log("Controller: " + controllerId + ", has been deleted.");
-			}
-		});
-	},
-	createController: function(name, address, port, socket) {
-		$.ajax({
-			url: this.urlControllers,
-			type: "post", 
-			data: { name: name, address: address, port: port, socket: socket },
-			success: function(data) {
-				console.log("Controller: " + name + ", has been created.");
-			}
-		});
-	},
-	updateController: function(id, name, address, port, socket) {
-		$.ajax({
-			url: this.urlController+'/'+id, 
-			type: "post", 
-			data: { name: name, address: address, port: port, socket: socket },
-			success: function(data) {
-				console.log("Controller: " + name + ", has been updated.");
-			}
-		});
-	},
-	createChamber: function(controllerid, name) {
-		$.ajax({
-			url: this.urlChambers+'/'+controllerid,
-			type: "post", 
-			data: { name: name },
-			success: function(data) {
-				console.log("Chamber: " + name + ", has been created on controller id: " + controllerid);
-			}
-		});
-	},
-	updateChamber: function(chamberid, name) {
-		$.ajax({
-			url: this.urlChamber+'/'+chamberid,
-			type: "post", 
-			data: { name: name },
-			success: function(data) {
-				console.log("Chamber: " + name + ", has been updated." );
-			}
-		});
-	},
-	deleteChamber: function(chamberid) {
-		$.ajax({
-			url: this.urlChamber+'/'+chamberid,
-			type: "delete", 
-			success: function(data) {
-				console.log("Chamber: " + chamberid + ", has been deleted." );
-			}
-		});
-	},
-	createDevice: function(chamberid, name, slot, func, devicetype, hardwaretype) {
-		$.ajax({
-			url: this.urlDevices+'/'+chamberid,
-			type: "put", 
-			data: { name: name, slot:slot, "function": func, devicetype:devicetype, hardwaretype:hardwaretype },
-			success: function(data) {
-				console.log("Device: " + name + ", has been created on chamber id: " + chamberid);
-			}
-		});
-	},
-	updateDevice: function(deviceid, name, slot, func, devicetype, hardwaretype) {
-		$.ajax({
-			url: this.urlDevice+'/'+deviceid,
-			type: "post", 
-			data: { name: name, slot:slot, "function": func, devicetype:devicetype, hardwaretype:hardwaretype },
-			success: function(data) {
-				console.log("Device: " + name + ", has been updated." );
-			}
-		});
-	},
-	deleteDevice: function(deviceid) {
-		$.ajax({
-			url: this.urlDevice+'/'+deviceid,
-			type: "delete", 
-			success: function(data) {
-				console.log("Device: " + deviceid + ", has been deleted." );
-			}
-		});
-	}
-};
-// maelstrom io/device configuration
-var MaelstromProfileSettings = function(mael) {
-	if ( arguments.length > 0 ) this.init(mael);
+// maelstrom profile configuration
+var MaelstromProfileSettings = function(mael, loadedHandler, changeHandler) {
+	if ( arguments.length > 0 ) this.init(mael, loadedHandler, changeHandler);
 }
 MaelstromProfileSettings.prototype = {
-	init: function(mael) {
-		this.urlProfiles = _maelGetRootUrl() + '/profiles';
-		this.urlProfile = _maelGetRootUrl() + '/profile';
+	changeHandler: null,
+	loadedHandler: null,
+	init: function(mael, loadedHandler, changeHandler) {
+		this.urlProfiles = '/profiles';
+		this.urlProfile = '/profile';
+		this.loadedHandler = loadedHandler;
+		this.changeHandler = changeHandler;
 		mael.subscribe('_profiles');
-		$(document).bind( 'maelstromChannelMessage-_profiles', function(ev, message) {
-			console.log("Profile change: " + message.payload.eventType);
+		mael.addHandler('_profiles', function(data) {
+			console.log("Profile change: " + data.message.eventType);
 			var p;
-			if (message.payload.eventType != "delete") {
-				p = { eventType: message.payload.eventType, profileId: message.payload.profile.id, profile: message.payload.profile };
+			if (data.message.eventType != "delete") {
+				p = { eventType: data.message.eventType, profileId: data.message.profile.id, profile: data.message.profile };
 			} else {
-				p = { eventType: message.payload.eventType, profileId: message.payload.profileId };
+				p = { eventType: data.message.eventType, profileId: data.message.profileId };
 			}
-			$(document).trigger( 'maelstromProfileChange', p );
+			changeHandler.call( this, p );
 		});
+		this.getProfiles();
 	},
 	getProfiles: function(handler) {
 		var that = this;
@@ -332,7 +195,7 @@ MaelstromProfileSettings.prototype = {
 			if ( typeof(handler) !== 'undefined' ) {
 				handler(profs);
 			} else {
-				$(document).trigger( 'maelstromProfilesLoaded', { profiles: profs } );
+				if ( that.loadedHandler != null) that.loadedHandler.call(that, { profiles: profs } );
 			}
 		});
 	},
