@@ -7,20 +7,13 @@ from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 #   SQLite/SQLAlchemy stuff
 ###################################################
 
-
-DB = "sqlite:///%s/db"
 DBSession = scoped_session(sessionmaker())
 Base = declarative_base()
 
-def config_db(statedir):
-    engine = create_engine(DB%statedir)
+def init_db(connstr):
+    engine = create_engine(connstr)
     DBSession.configure(bind=engine)
-    return engine
-
-def init_db(statedir):
-    engine = config_db(statedir)
     Base.metadata.create_all(engine)
-    return engine
 
 class TMix:
     @classmethod
