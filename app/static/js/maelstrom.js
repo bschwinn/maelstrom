@@ -140,15 +140,15 @@ MaelstromAppSettings.prototype = {
 		this.loadedHandler = loadedHandler;
 		this.changeHandler = changeHandler;
 		mael.subscribe('_appsettings');
-		mael.addHandler('_appsettings', function(ev, message) {
-			this.changeHandler.call( this, { eventType: message.payload.eventType, settings: message.payload.settings } );
+		mael.addHandler('_appsettings', function(data) {
+			changeHandler.call( this, { eventType: data.message.eventType, settings: data.message.settings } );
 		});
 		this.getSettings();
 	},
 	getSettings: function() {
 		var that = this;
 		$.get(this.url, function(data) {
-			if ( that.loadedHandler != null) that.loadedHandler.call(that, { settings: JSON.parse(data) } );
+			if ( that.loadedHandler != null) that.loadedHandler.call(that, { settings: data } );
 		});
 	},
 	saveSetting: function(name, val) {

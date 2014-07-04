@@ -22,7 +22,7 @@ function BrewCtrl($scope, $document, maelstrom) {
 
   // app settings model
   $scope.appsettings = {};
-  $scope.appsettings.breweryLogo = 'img/logo-777.png';
+  $scope.appsettings.breweryLogo = 's/img/logo-777.png';
 
   // debugger model
   $scope.debug = {};
@@ -56,7 +56,7 @@ function BrewCtrl($scope, $document, maelstrom) {
     // load up app settings
     maelstrom.loadAppSettings(
       function (data) {
-        $(data.settings).each( function(idx,obj) {
+        $(data.settings.appsettings).each( function(idx,obj) {
           $scope.appsettings[obj.name] = obj.value;
         });
       },

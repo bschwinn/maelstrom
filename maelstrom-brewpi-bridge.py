@@ -2,7 +2,7 @@ import socket, os, time
 import urllib, urllib2
 import simplejson as json
 
-from libmaelstrom import db
+from app import db
 
 # bridges maelstrom and brewpi.py
 #  - reads controller config from maelstrom and for each controller:

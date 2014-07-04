@@ -62,7 +62,6 @@ app.directive('brewProfileChart', function($filter) {
     };
 });
 
-
 // courtesy of Luegg: https://github.com/Luegg/angularjs-scroll-glue
 app.directive('brewAutoScroll', function(){
 

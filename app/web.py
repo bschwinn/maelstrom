@@ -1,7 +1,7 @@
 import simplejson as json
 
 from datetime import datetime
-from tornado.web import Application, RequestHandler, StaticFileHandler, RedirectHandler
+from tornado.web import RequestHandler
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import db, core
@@ -17,17 +17,16 @@ import db, core
 #    - get all, or change one, like it or not ;)
 ###################################################
 
-class AppSettingsHandler(RequestHandler):
-    def get(self):
+class AppSettingsManager():
+    def get_appsettings(self):
         session = db.DBSession()
         settings = session.query(db.AppSetting).all()
         c = []
         for setting in settings:
             c.append( dict( name = setting.name, value = setting.value) )
-        self.write(json.dumps(c))
+        return c
         
-    def post(self):
-        settingsString = self.get_argument("settings", None)
+    def save_appsettings(self, settingsString):
         if settingsString is not None:
             settings = json.loads(settingsString)
             for setting in settings:

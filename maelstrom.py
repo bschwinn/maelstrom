@@ -4,7 +4,7 @@ from tornado.wsgi import WSGIContainer
 from tornado.web import Application, StaticFileHandler, RedirectHandler, FallbackHandler
 from tornado.ioloop import IOLoop
 
-from libmaelstrom import app, core, db, web
+from app import app, core, db, web
 from config import basedir
 
 
@@ -18,8 +18,7 @@ def main():
 
     application = Application([
 
-        (r"/", RedirectHandler, {"url": "/s/app.html"}),
-        (r"/s/(.*)", StaticFileHandler, { "path" : basedir + "/libmaelstrom/static" }),
+        (r"/s/(.*)", StaticFileHandler, { "path" : basedir + "/app/static" }),
         (r"/socket", core.ClientSocket),
         (r"/publish", core.Publisher),
         # (r"/appsettings", web.AppSettingsHandler),
