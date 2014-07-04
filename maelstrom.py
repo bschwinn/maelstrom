@@ -4,8 +4,8 @@ from tornado.wsgi import WSGIContainer
 from tornado.web import Application, StaticFileHandler, RedirectHandler, FallbackHandler
 from tornado.ioloop import IOLoop
 
-# from libmaelstrom import core, db, web
 from libmaelstrom import app, core, db, web
+from config import basedir
 
 
 ###################################################
@@ -13,18 +13,15 @@ from libmaelstrom import app, core, db, web
 ###################################################
 
 def main():
-    staticPath = os.path.dirname(os.path.realpath(__file__))+"/libmaelstrom/static"
-    staticPath2 = os.path.dirname(os.path.realpath(__file__))+"/libmaelstrom/static2"
-    dataPath = os.path.dirname(os.path.realpath(__file__))+"/data"
 
     wsgi_app = WSGIContainer(app)
+
     application = Application([
 
         (r"/", RedirectHandler, {"url": "/s/app.html"}),
+        (r"/s/(.*)", StaticFileHandler, { "path" : basedir + "/libmaelstrom/static" }),
         (r"/socket", core.ClientSocket),
         (r"/publish", core.Publisher),
-        (r"/s/(.*)", StaticFileHandler, { "path" : staticPath }),
-        (r"/s2/(.*)", StaticFileHandler, { "path" : staticPath2 }),
         # (r"/appsettings", web.AppSettingsHandler),
         # (r"/iocontrollers", web.IOControllersHandler),
         # (r"/iocontroller/([0-9]+)", web.IOControllerHandler),
@@ -34,9 +31,9 @@ def main():
         # (r"/iodevice/([0-9]+)", web.IODeviceHandler),
         (r"/profiles", web.ProfilesHandler),
         (r"/profile/([0-9]+)", web.ProfileHandler),
-        (r"/.*", FallbackHandler, dict(fallback=wsgi_app)),
+        (r".*", FallbackHandler, dict(fallback=wsgi_app)),
     ])
-    db.init_db(dataPath)
+    db.init_db(app.config['SQLALCHEMY_DATABASE_URI'])
     application.listen(8888)
     IOLoop.instance().start()
 
