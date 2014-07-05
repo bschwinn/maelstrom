@@ -2,7 +2,7 @@ from flask import render_template, make_response, jsonify, url_for, request
 
 import simplejson as json
 
-from app import app, db, core, web
+from app import app, db, core, dao
 
 setman = web.AppSettingsManager()
 
