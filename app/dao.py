@@ -23,19 +23,18 @@ class AppSettingsManager():
             c.append( dict( name = setting.name, value = setting.value) )
         return c
         
-    def save_appsettings(self, settingsString):
-        if settingsString is not None:
-            settings = json.loads(settingsString)
-            for setting in settings:
-                self.processSetting( setting["name"], setting["value"] )
-            c = settings
-        else:
-            name = self.get_argument("name")
-            val = self.get_argument("value")
-            self.processSetting( name, val )
-            c = [ dict( name = name, value = val) ]
+    def save_appsetting(self, name, val):
+        self.processSetting( name, val )
+        c = [ dict( name = name, value = val) ]
         # publish a change event 
         p = dict( eventType = "change", settings = c )
+        core.theMan.publishMessage("_appsettings", json.dumps(dict( channel = "_appsettings", payload = p )))
+
+    def save_appsettings(self, settings):
+        for setting in settings:
+            self.processSetting( setting["name"], setting["value"] )
+        # publish a change event 
+        p = dict( eventType = "change", settings = settings )
         core.theMan.publishMessage("_appsettings", json.dumps(dict( channel = "_appsettings", payload = p )))
 
     def processSetting(self, name, val):
@@ -99,36 +98,31 @@ class ProfileManager():
         profDic = dict( id = profile.id, name = profile.name, type = profile.type, temperatures = temps )
         return profDic
 
-    def create_profile(self):
+    def create_profile(self, prof):
         session = db.DBSession()
-        name = self.get_argument('name')
-        type = self.get_argument('type')
-        temps = json.loads(self.get_argument('temperatures'))
-        evts = json.loads(self.get_argument('events'))
-        profile = db.Profile(name = name, type = type, temperatures =  [], events = [])
+        profile = db.Profile(name = prof["name"], type = prof["type"], temperatures = [], events = [])
         session.add(profile)
         session.commit()
-        profile.temperatures = ProfileUtils.parseTemperatures(profile.id, temps)
-        profile.events = ProfileUtils.parseEvents(profile.id, evts)
+        profile.temperatures = [self.toProfileTemp(profile.id, pt) for pt in prof["temperatures"]]
+        profile.events = [self.toProfileTemp(profile.id, pt) for pt in prof["events"]]
         session.add(profile)
         session.commit()
         # publish a change event 
-        prof = dict( id = profile.id, name = profile.name, temperatures = ProfileUtils.stringifyTemperatures(profile.temperatures), events = ProfileUtils.stringifyEvents(profile.events))
+        prof = dict( id = profile.id, name = profile.name, temperatures = profile.temperatures, events = profile.events)
         p = dict( eventType = "create", profile = prof )
         core.theMan.publishMessage("_profiles", json.dumps(dict( channel = "_profiles", payload = p )))
 
-    def update_profile(self, profileid):
-        cid = int(profileid)
+    def update_profile(self, pid, prof):
+        cid = int(pid)
         session = db.DBSession()
         profile = session.query(db.Profile).filter(db.Profile.id == cid).one()
-        profile.name = self.get_argument('name')
-        profile.type = self.get_argument('type')
-        temps = json.loads(self.get_argument('temperatures'))
-        evts = json.loads(self.get_argument('events'))
-        profile.temperatures = ProfileUtils.parseTemperatures(profileid, temps)
-        profile.events = ProfileUtils.parseEvents(profileid, evts)
+        profile.name = prof["name"]
+        profile.type = prof["type"]
+        profile.temperatures = [self.toProfileTemp(pid, pt) for pt in prof["temperatures"]]
+        profile.events = [self.toProfileTemp(pid, pt) for pt in prof["events"]]
         session.commit()
-        prof = dict( id = profile.id, name = profile.name, temperatures = ProfileUtils.stringifyTemperatures(profile.temperatures), events = ProfileUtils.stringifyEvents(profile.events))
+        # publish a change event 
+        prof = dict( id = profile.id, name = profile.name, temperatures = [self.fromProfileTemp(profile.id, pt) for pt in profile.temperatures], events = [self.fromProfileTemp(profile.id, pe) for pe in profile.events])
         p = dict( eventType = "update", profile = prof )
         core.theMan.publishMessage("_profiles", json.dumps(dict( channel = "_profiles", payload = p )))
 
@@ -136,55 +130,39 @@ class ProfileManager():
         pid = int(profileid)
         session = db.DBSession()
         profile = session.query(db.Profile).filter(db.Profile.id == pid).one()
+        profileTemps = session.query(db.ProfileTemperature).filter(db.Profile.id == pid).all()
+        profileEvts = session.query(db.ProfileEvent).filter(db.Profile.id == pid).all()
         session.delete(profile)
+        session.delete(profileTemps)
+        session.delete(profileEvts)
         session.commit()
         # publish a change event 
         p = dict( eventType = "delete", profileId = profileid )
         core.theMan.publishMessage("_profiles", json.dumps(dict( channel = "_profiles", payload = p )))
 
-#   API utils
-class ProfileUtils():
+    def toProfileTemp(self, id, profTemp):
+        d = ''
+        if profTemp['date'] is not None:
+            d = datetime.strptime(profTemp['date'], '%Y-%m-%dT%H:%M:%S')
+        return db.ProfileTemperature(profile_id = id, day = profTemp["days"], date = d, temperature = profTemp["temperature"])
 
-    @classmethod
-    def parseTemperatures(self, profileid, temps):
-        tarr = []
-        for temp in temps:
-            d = ''
-            if temp['date'] is not None:
-                d = datetime.strptime(temp['date'], '%Y-%m-%dT%H:%M:%S')
-            tarr.append( db.ProfileTemperature(profile_id = profileid, day = temp["days"], date = d, temperature = temp["temperature"]) )
-        return tarr
+    def fromProfileTemp(self, id, profTemp):
+        d = ''
+        if profTemp.date is not None:
+            d = profTemp.date.strftime('%Y-%m-%dT%H:%M:%S')
+        return dict(profileId = id, days = profTemp.day, date = d, temperature = profTemp.temperature)
 
-    @classmethod
-    def stringifyTemperatures(self, temps):
-        tarr = []
-        for temp in temps:
-            d = ''
-            if temp.date is not None:
-                d = temp.date.strftime('%Y-%m-%dT%H:%M:%S')
-            tarr.append( dict(profileId = temp.profile_id, days = temp.day, date = d, temperature = temp.temperature) )
-        return tarr
+    def toProfileEvent(self, id, profEvt):
+        d = ''
+        if profEvt['date'] is not None:
+            d = datetime.strptime(profEvt['date'], '%Y-%m-%dT%H:%M:%S')
+        return db.ProfileTemperature(profile_id = id, day = profEvt["days"], date = d, temperature = profEvt["temperature"])
 
-    @classmethod
-    def parseEvents(self, profileid, events):
-        evarr = []
-        for evt in events:
-            d = ''
-            if evt['date'] is not None:
-                d = datetime.strptime(evt['date'], '%Y-%m-%dT%H:%M:%S')
-            evarr.append( db.ProfileEvent(profile_id = profileid, day = evt["days"], date = d, eventText = evt["eventText"]) )
-        return evarr
-
-    @classmethod
-    def stringifyEvents(self, events):
-        evarr = []
-        for evt in events:
-            d = ''
-            if evt.date is not None:
-                d = evt.date.strftime('%Y-%m-%dT%H:%M:%S')
-            evarr.append( dict(profileId = evt.profile_id, days = evt.day, date = d, eventText = evt.eventText) )
-        return evarr
-
+    def fromProfileEvent(self, id, profEvent):
+        d = ''
+        if profEvent.date is not None:
+            d = profEvent.date.strftime('%Y-%m-%dT%H:%M:%S')
+        return dict(profileId = id, days = profEvent.day, date = d, temperature = profEvent.temperature)
 
 
 ###################################################

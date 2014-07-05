@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 
 ###################################################
-#   SQLite/SQLAlchemy stuff
+#   Models and Migrations?
 ###################################################
 
 DBSession = scoped_session(sessionmaker())
@@ -15,20 +15,10 @@ def init_db(connstr):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
 
-class TMix:
-    @classmethod
-    def count(klass):
-        session = DBSession()
-        return session.query(klass).count()
 
-    def dict(self):
-        d = {}
-        for i in self.__table__.columns:
-            d[i.name] = getattr(self, i.name)
-        return d
 
 # app settings (name/value pairs)
-class AppSetting(Base, TMix):
+class AppSetting(Base):
     __tablename__ = 'appsetting'
     id = Column(Integer, primary_key=True)
     name = Column(VARCHAR(1024))
@@ -38,8 +28,46 @@ class AppSetting(Base, TMix):
         self.name, self.value = name, value
 
 
+
+# temperature profiles
+class ProfileEvent(Base):
+    __tablename__ = 'profileEvent'
+    id = Column(Integer, primary_key=True)
+    profile_id = Column(Integer, ForeignKey("profile.id", ondelete='CASCADE'))
+    day = Column(Numeric)
+    date = Column(DateTime)
+    eventText = Column(VARCHAR(2048))
+    def __init__(self, profile_id, day, date, eventText):
+        self.profile_id, self.day, self.date, self.eventText = profile_id, day, date, eventText
+
+class ProfileTemperature(Base):
+    __tablename__ = 'profileTemperature'
+    id = Column(Integer, primary_key=True)
+    profile_id = Column(Integer, ForeignKey("profile.id", ondelete='CASCADE'))
+    day = Column(Numeric)
+    date = Column(DateTime)
+    temperature = Column(Numeric)
+    def __init__(self, profile_id, day, date, temperature):
+        self.profile_id, self.day, self.date, self.temperature = profile_id, day, date, temperature
+
+class Profile(Base):
+    __tablename__ = 'profile'
+    id = Column(Integer, primary_key=True)
+    name = Column(VARCHAR(1024))
+    type = Column(VARCHAR(1024))
+    temperatures = relationship("ProfileTemperature", passive_deletes=True)
+    events = relationship("ProfileEvent", passive_deletes=True)
+    
+    def __init__(self, **kwargs):
+        for i in self.__table__.columns:
+            if i.name in kwargs:
+                setattr(self, i.name, kwargs[i.name])
+
+
+
+
 # io settings - controllers (arduinos) -> devices (inputs/outputs)
-class IODevice(Base, TMix):
+class IODevice(Base):
     __tablename__ = 'iodevice'
     id = Column(Integer, primary_key=True)
     iochamber_id = Column(Integer, ForeignKey("iochamber.id", ondelete='CASCADE'))
@@ -51,7 +79,7 @@ class IODevice(Base, TMix):
     def __init__(self, iochamber_id, name, slot, devicetype, hardwaretype, function):
         self.iochamber_id, self.name, self.slot, self.devicetype, self.hardwaretype, self.function = iochamber_id, name, slot, devicetype, hardwaretype, function
 
-class IOChamber(Base, TMix):
+class IOChamber(Base):
     __tablename__ = 'iochamber'
     id = Column(Integer, primary_key=True)
     name = Column(VARCHAR(1024))
@@ -60,7 +88,7 @@ class IOChamber(Base, TMix):
     def __init__(self, iocontroller_id, name):
         self.iocontroller_id, self.name = iocontroller_id, name
 
-class IOController(Base, TMix):
+class IOController(Base):
     __tablename__ = 'iocontroller'
     id = Column(Integer, primary_key=True)
     name = Column(VARCHAR(1024))
@@ -68,41 +96,6 @@ class IOController(Base, TMix):
     port = Column(VARCHAR(1024))
     socket = Column(VARCHAR(1024))
     chambers = relationship("IOChamber", passive_deletes=True)
-    
-    def __init__(self, **kwargs):
-        for i in self.__table__.columns:
-            if i.name in kwargs:
-                setattr(self, i.name, kwargs[i.name])
-
-
-# temperature profiles
-class ProfileEvent(Base, TMix):
-    __tablename__ = 'profileEvent'
-    id = Column(Integer, primary_key=True)
-    profile_id = Column(Integer, ForeignKey("profile.id", ondelete='CASCADE'))
-    day = Column(Numeric)
-    date = Column(DateTime)
-    eventText = Column(VARCHAR(2048))
-    def __init__(self, profile_id, day, date, eventText):
-        self.profile_id, self.day, self.date, self.eventText = profile_id, day, date, eventText
-
-class ProfileTemperature(Base, TMix):
-    __tablename__ = 'profileTemperature'
-    id = Column(Integer, primary_key=True)
-    profile_id = Column(Integer, ForeignKey("profile.id", ondelete='CASCADE'))
-    day = Column(Numeric)
-    date = Column(DateTime)
-    temperature = Column(Numeric)
-    def __init__(self, profile_id, day, date, temperature):
-        self.profile_id, self.day, self.date, self.temperature = profile_id, day, date, temperature
-
-class Profile(Base, TMix):
-    __tablename__ = 'profile'
-    id = Column(Integer, primary_key=True)
-    name = Column(VARCHAR(1024))
-    type = Column(VARCHAR(1024))
-    temperatures = relationship("ProfileTemperature", passive_deletes=True)
-    events = relationship("ProfileEvent", passive_deletes=True)
     
     def __init__(self, **kwargs):
         for i in self.__table__.columns:

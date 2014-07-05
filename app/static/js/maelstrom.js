@@ -177,12 +177,12 @@ MaelstromProfileSettings.prototype = {
 		this.changeHandler = changeHandler;
 		mael.subscribe('_profiles');
 		mael.addHandler('_profiles', function(data) {
-			console.log("Profile change: " + data.message.eventType);
-			var p;
-			if (data.message.eventType != "delete") {
-				p = { eventType: data.message.eventType, profileId: data.message.profile.id, profile: data.message.profile };
+			var p, msg = data.message;
+			console.log("Profile change: " + msg.eventType);
+			if (msg.eventType != "delete") {
+				p = { eventType: msg.eventType, profileId: msg.profile.id, profile: msg.profile };
 			} else {
-				p = { eventType: data.message.eventType, profileId: data.message.profileId };
+				p = { eventType: msg.eventType, profileId: msg.profileId };
 			}
 			changeHandler.call( this, p );
 		});
@@ -212,7 +212,7 @@ MaelstromProfileSettings.prototype = {
 		$.ajax({
 			url: this.urlProfiles,
 			type: "post", 
-			data: { name: name, "type": theType, temperatures: JSON.stringify(temperatures), events: JSON.stringify(events) },
+			data: { profile: JSON.stringify( { "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
 			success: function(data) {
 				console.log("Profile: " + name + ", has been updated.");
 				if ( typeof(successHandler) !== 'undefined' ) {
@@ -231,7 +231,7 @@ MaelstromProfileSettings.prototype = {
 		$.ajax({
 			url: this.urlProfile+'/'+id, 
 			type: "post", 
-			data: { name: name, "type": theType, temperatures: JSON.stringify(temperatures), events: JSON.stringify(events) },
+			data: { profile: JSON.stringify( { "id" : id, "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
 			success: function(data) {
 				console.log("Profile: " + name + ", has been updated.");
 				if ( typeof(successHandler) !== 'undefined' ) {
