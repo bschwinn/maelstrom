@@ -3,6 +3,7 @@ import urllib, urllib2
 import simplejson as json
 
 from app import db
+from config import SQLALCHEMY_DATABASE_URI
 
 # bridges maelstrom and brewpi.py
 #  - reads controller config from maelstrom and for each controller:
@@ -75,7 +76,7 @@ class BrewPiBridge:
 bridge = BrewPiBridge()
 
 # init db connection - this may create it if not there ?!?
-db.init_db( os.path.dirname(os.path.realpath(__file__))+"/data" )
+db.init_db( SQLALCHEMY_DATABASE_URI )
 
 while True:
 
