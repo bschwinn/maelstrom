@@ -32,11 +32,11 @@ a, a:hover { text-decoration: none; }
 
 #alarmsDiv { height:120px; border-radius:5px; padding:10px; overflow:auto; }
 
-#appsettingslist, #profilelist { min-height: 400px; position:relative; padding:10px 0 0 0; margin:0; }
-#appsettingslist li a, #profilelist li a { border-top-right-radius: 0px; border-bottom-right-radius: 0px; }
-#appsettingsMain, #profileDetail { min-height: 400px; position:relative; }
-#saveAppSettings, #saveProfile { bottom:15px; right:25px; position:absolute; }
-#newProfile { bottom:15px; left:0px; position:absolute; }
+#appsettingslist, #profilelist, #controllerlist { min-height: 400px; position:relative; padding:10px 0 0 0; margin:0; }
+#appsettingslist li a, #profilelist li a , #controllerlist li a { border-top-right-radius: 0px; border-bottom-right-radius: 0px; }
+#appsettingsMain, #profileDetail, #controllerDetail { min-height: 400px; position:relative; }
+#saveAppSettings, #saveProfile, #saveController { bottom:15px; right:25px; position:absolute; }
+#newProfile, #newController { bottom:15px; left:0px; position:absolute; }
 
 #profileDetail.empty .panel-body { display:none; }
 #profileDetail.edit .form-display, #profileDetail.new .form-display { display:none; }
@@ -45,6 +45,14 @@ a, a:hover { text-decoration: none; }
 
 #profileDetail.edit #btnEditProf, #profileDetail.new #btnEditProf, #profileDetail.empty #btnEditProf {display: none; }
 #profileDetail.readonly #btnCancelEditProf, #profileDetail.readonly #btnSaveProf, #profileDetail.empty #btnCancelEditProf, #profileDetail.empty #btnSaveProf {display: none; }
+
+#controllerDetail.empty .panel-body { display:none; }
+#controllerDetail.edit .form-display, #controllerDetail.new .form-display { display:none; }
+#controllerDetail.edit .empty-prompt, #controllerDetail.new .empty-prompt, #controllerDetail.readonly .empty-prompt { display:none; }
+#controllerDetail.readonly .form-control { display:none; }
+
+#controllerDetail.edit #btnEditController, #controllerDetail.new #btnEditController, #controllerDetail.empty #btnEditController {display: none; }
+#controllerDetail.readonly #btnCancelEditController, #controllerDetail.readonly #btnSaveController, #controllerDetail.empty #btnCancelEditController, #controllerDetail.empty #btnSaveController {display: none; }
 
 .profileTableMenu {
     position: absolute;
@@ -57,11 +65,3 @@ a, a:hover { text-decoration: none; }
 .profileTableMenu UL LI:last-child { border-bottom: 1px solid #fff; }
 .profileTableMenu UL LI:hover { color:#fff; border: 1px solid #4297d7; background: #5c9ccc; }
 
-
-#controllerDetail.empty .panel-body { display:none; }
-#controllerDetail.edit .form-display, #controllerDetail.new .form-display { display:none; }
-#controllerDetail.edit .empty-prompt, #controllerDetail.new .empty-prompt, #controllerDetail.readonly .empty-prompt { display:none; }
-#controllerDetail.readonly .form-control { display:none; }
-
-#controllerDetail.edit #btnEditController, #controllerDetail.new #btnEditController, #controllerDetail.empty #btnEditController {display: none; }
-#controllerDetail.readonly #btnCancelEditController, #controllerDetail.readonly #btnSaveController, #controllerDetail.empty #btnCancelEditController, #controllerDetail.empty #btnSaveController {display: none; }

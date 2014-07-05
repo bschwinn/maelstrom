@@ -108,11 +108,11 @@ app.factory('maelstrom', function ($rootScope) {
     getController: function (id, callback) {
       ioman.getController(id, callback);
     },
-    updateController: function (id, name, theType, temperatures, events, successHandler, failureHandler) {
-      ioman.updateController(id, name, theType, temperatures, events, successHandler, failureHandler);
+    updateController: function (id, name, address, port, socket, successHandler, failureHandler) {
+      ioman.updateController(id, name, address, port, socket, successHandler, failureHandler);
     },
-    createController: function (name, theType, temperatures, events, successHandler, failureHandler) {
-      ioman.createController(name, theType, temperatures, events, successHandler, failureHandler);
+    createController: function (name, address, port, socket, successHandler, failureHandler) {
+      ioman.createController(name, address, port, socket, successHandler, failureHandler);
     }
   };
 });

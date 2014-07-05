@@ -212,7 +212,7 @@ MaelstromProfileSettings.prototype = {
 		$.ajax({
 			url: this.urlProfiles,
 			type: "post", 
-			data: { profile: JSON.stringify( { "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
+			data: { 'profile': JSON.stringify( { "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
 			success: function(data) {
 				console.log("Profile: " + name + ", has been created.");
 				if ( typeof(successHandler) !== 'undefined' ) {
@@ -231,7 +231,7 @@ MaelstromProfileSettings.prototype = {
 		$.ajax({
 			url: this.urlProfile+'/'+id, 
 			type: "post", 
-			data: { profile: JSON.stringify( { "id" : id, "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
+			data: { 'profile': JSON.stringify( { "id" : id, "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
 			success: function(data) {
 				console.log("Profile: " + name + ", has been updated.");
 				if ( typeof(successHandler) !== 'undefined' ) {
@@ -303,11 +303,11 @@ MaelstromControllerSettings.prototype = {
 			}
 		});
 	},
-	createController: function(name, theType, temperatures, events, successHandler, failureHandler) {
+	createController: function(name, address, port, socket, successHandler, failureHandler) {
 		$.ajax({
 			url: this.urlControllers,
 			type: "post", 
-			data: { controller: JSON.stringify( { "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
+			data: { 'iocontroller': JSON.stringify( { "name" : name, "address": address, "port": port, "socket": socket } ) }, 
 			success: function(data) {
 				console.log("Controller: " + name + ", has been created.");
 				if ( typeof(successHandler) !== 'undefined' ) {
@@ -322,11 +322,11 @@ MaelstromControllerSettings.prototype = {
 			}
 		});
 	},
-	updateController: function(id, name, theType, temperatures, events, successHandler, failureHandler) {
+	updateController: function(id, name, address, port, socket, successHandler, failureHandler) {
 		$.ajax({
 			url: this.urlController+'/'+id, 
 			type: "post", 
-			data: { controller: JSON.stringify( { "id" : id, "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
+			data: { 'iocontroller': JSON.stringify( { "id" : id, "name" : name, "address": address, "port": port, "socket": socket } ) }, 
 			success: function(data) {
 				console.log("Controller: " + name + ", has been updated.");
 				if ( typeof(successHandler) !== 'undefined' ) {

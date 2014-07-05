@@ -160,63 +160,44 @@ class ProfileManager():
 ###################################################
 
 #   API handlers for IO Controllers create and list
-class IOControllersHandler(RequestHandler):
-    def get(self):
+class IOControllerManager():
+    def get_controllers(self):
         session = db.DBSession()
         controllers = session.query(db.IOController).all()
         c = []
         for controller in controllers:
-            chambs = []
-            for chamb in controller.chambers:
-                chambs.append(dict(id = chamb.id, name = chamb.name))
-            conDic = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, socket = controller.socket, chambers = chambs )
-            c.append(conDic)
-        self.write(json.dumps(c))
+            c.append( dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, socket = controller.socket ) )
+        return c
 
-    def post(self):
+    def create_controller(self, ctrlr):
         session = db.DBSession()
-        name = self.get_argument('name')
-        address = self.get_argument('address')
-        port = self.get_argument('port')
-        socket = self.get_argument('socket')
-        controller = db.IOController(name = name, address = address, port = port, socket = socket)
+        controller = db.IOController(name = ctrlr['name'], address = ctrlr['address'], port = ctrlr['port'], socket = ctrlr['socket'])
         session.add(controller)
         session.commit()
         # publish a change event 
-        c = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, socket = controller.socket)
-        p = dict( eventType = "create", controller = c )
+        p = dict( eventType = "create", controller = ctrlr )
         core.theMan.publishMessage("_iocontrollers", json.dumps(dict( channel = "_iocontrollers", payload = p )))
 
-#   API handlers for IO Controllers retrieve, update, delete
-class IOControllerHandler(RequestHandler):
-    def get(self, controllerid):
+    def get_controller(self, controllerid):
         cid = int(controllerid)
         session = db.DBSession()
         controller = session.query(db.IOController).filter(db.IOController.id == cid).one()
-        chambs = []
-        for chamb in controller.chambers:
-            devs = []
-            for dev in chamb.devices:
-                devs.append( dict(id = dev.id, name = dev.name, slot = dev.slot, function = dev.function, hardwaretype = dev.hardwaretype, devicetype = dev.devicetype) )
-            chambs.append(dict(id = chamb.id, name = chamb.name, devices = devs))
-        conDic = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, socket = controller.socket, chambers = chambs )
-        self.write(json.dumps(conDic))
+        return dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, socket = controller.socket )
 
-    def post(self, controllerid):
+    def update_controller(self, controllerid, ctrlr):
         cid = int(controllerid)
         session = db.DBSession()
         controller = session.query(db.IOController).filter(db.IOController.id == cid).one()
-        controller.name = self.get_argument('name')
-        controller.address = self.get_argument('address')
-        controller.port = self.get_argument('port')
-        controller.socket = self.get_argument('socket')
+        controller.name = ctrlr['name']
+        controller.address = ctrlr['address']
+        controller.port = ctrlr['port']
+        controller.socket = ctrlr['socket']
         session.commit()
         # publish a change event 
-        c = dict( id = controller.id, name = controller.name, address = controller.address, port = controller.port, socket = controller.socket)
-        p = dict( eventType = "update", controller = c )
+        p = dict( eventType = "update", controller = ctrlr )
         core.theMan.publishMessage("_iocontrollers", json.dumps(dict( channel = "_iocontrollers", payload = p )))
 
-    def delete(self, controllerid):
+    def delete_controller(self, controllerid):
         cid = int(controllerid)
         session = db.DBSession()
         controller = session.query(db.IOController).filter(db.IOController.id == cid).one()
@@ -226,85 +207,3 @@ class IOControllerHandler(RequestHandler):
         p = dict( eventType = "delete", controllerId = controllerid )
         core.theMan.publishMessage("_iocontrollers", json.dumps(dict( channel = "_iocontrollers", payload = p )))
 
-#   API handlers for Controller Chambers: create, todo: list
-class IOChambersHandler(RequestHandler):
-    def post(self, controllerid):
-        session = db.DBSession()
-        name = self.get_argument('name')
-        chamber = db.IOChamber(iocontroller_id = controllerid, name = name)
-        session.add(chamber)
-        session.commit()
-        # publish a change event 
-        ch = dict( id = chamber.id, controllerId = chamber.iocontroller_id, name = chamber.name )
-        p = dict( eventType = "create", chamber = ch )
-        core.theMan.publishMessage("_iochambers", json.dumps(dict( channel = "_iochambers", payload = p )))
-
-
-#   API handlers for Controller Chambers: update and delete, todo: retrieve single
-class IOChamberHandler(RequestHandler):
-    def post(self, chamberid):
-        chid = int(chamberid)
-        session = db.DBSession()
-        chamber = session.query(db.IOChamber).filter(db.IOChamber.id == chid).one()
-        chamber.name = self.get_argument('name')
-        session.commit()
-        # publish a change event 
-        ch = dict( id = chamber.id, controllerId = chamber.iocontroller_id, name = chamber.name )
-        p = dict( eventType = "update", chamber = ch )
-        core.theMan.publishMessage("_iochambers", json.dumps(dict( channel = "_iochambers", payload = p )))
-
-    def delete(self, chamberid):
-        chid = int(chamberid)
-        session = db.DBSession()
-        chamber = session.query(db.IOChamber).filter(db.IOChamber.id == chid).one()
-        controllerid = chamber.iocontroller_id
-        session.delete(chamber)
-        session.commit()
-        # publish a change event 
-        p = dict( eventType = "delete", chamberId = chamberid, controllerId = controllerid )
-        core.theMan.publishMessage("_iochambers", json.dumps(dict( channel = "_iochambers", payload = p )))
-
-#   API handlers for Chamber Devices: create, todo: list
-class IODevicesHandler(RequestHandler):
-    def put(self, chamberid):
-        session = db.DBSession()
-        name = self.get_argument('name')
-        slot = self.get_argument('slot')
-        function = self.get_argument('function')
-        devicetype = self.get_argument('devicetype')
-        hardwaretype = self.get_argument('hardwaretype')
-        device = db.IODevice(iochamber_id = chamberid, name = name, slot = slot, function = function, devicetype = devicetype, hardwaretype = hardwaretype)
-        session.add(device)
-        session.commit()
-        # publish a change event 
-        d = dict( id = device.id, chamberId = device.iochamber_id, name = device.name, slot = device.slot, function = device.function, devicetype = device.devicetype, hardwaretype = device.hardwaretype)
-        p = dict( eventType = "create", device = d )
-        core.theMan.publishMessage("_iodevices", json.dumps(dict( channel = "_iodevices", payload = p )))
-
-#   API handlers for Chamber Devices: update and delete, todo: retrieve single
-class IODeviceHandler(RequestHandler):
-    def post(self, deviceid):
-        did = int(deviceid)
-        session = db.DBSession()
-        device = session.query(db.IODevice).filter(db.IODevice.id == did).one()
-        device.name = self.get_argument('name')
-        device.slot = self.get_argument('slot')
-        device.function = self.get_argument('function')
-        device.devicetype = self.get_argument('devicetype')
-        device.hardwaretype = self.get_argument('hardwaretype')
-        session.commit()
-        # publish a change event 
-        d = dict( id = device.id, chamberId = device.iochamber_id, name = device.name, slot = device.slot, function = device.function, devicetype = device.devicetype, hardwaretype = device.hardwaretype)
-        p = dict( eventType = "update", device = d )
-        core.theMan.publishMessage("_iodevices", json.dumps(dict( channel = "_iodevices", payload = p )))
-
-    def delete(self, deviceid):
-        did = int(deviceid)
-        session = db.DBSession()
-        dev = session.query(db.IODevice).filter(db.IODevice.id == did).one()
-        chamberId = dev.iochamber_id
-        session.delete(dev)
-        session.commit()
-        # publish a change event 
-        p = dict( eventType = "delete", deviceId = deviceid, chamberId = chamberId )
-        core.theMan.publishMessage("_iodevices", json.dumps(dict( channel = "_iodevices", payload = p )))

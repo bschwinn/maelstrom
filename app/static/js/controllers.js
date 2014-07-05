@@ -36,6 +36,10 @@ function BrewCtrl($scope, $document, maelstrom) {
 
   $scope.profileEditor = null;
 
+  // controllers model and stuffs
+  $scope.controllers = [];
+  $scope.selectedController = {};
+  $scope.controllerDetailClass = 'empty';
 
 
   /********************** Maelstrom event handlers ***********************/
@@ -78,7 +82,7 @@ function BrewCtrl($scope, $document, maelstrom) {
     maelstrom.loadControllers(
       function (data) { 
         $scope.controllers = data.controllers;
-        $scope.selectControllers($scope.selectedControllers.id);
+        $scope.selectController($scope.selectedController.id);
       },
       function (data) {
         maelstrom.getControllers();
@@ -222,7 +226,66 @@ function BrewCtrl($scope, $document, maelstrom) {
 
 
 
+  // set selected controller by id
+  $scope.selectController = function(id) {
+    if ( $scope.controllers.length > 0 ) {
+      for ( var i=0; i< $scope.controllers.length; i++ ) {
+        if ( id == $scope.controllers[i].id ) {
+          $scope.selectedController = $scope.controllers[i];
+          $scope.controllerDetailClass = 'readonly';
+          break;
+        }
+      }
+    }
+  };
 
+  // turn on edit mode for currently selected controller
+  $scope.editSelectedController = function() {
+    $scope.controllerDetailClass = 'edit';
+  };
+
+  // turn on edit mode for currently selected controller
+  $scope.newController = function() {
+    $scope.controllerDetailClass = 'new';
+    var newProf = { "id" : null, "name" : "New Controller", "type" : "", "temperatures" : [], "events" : [] };
+    $scope.controllers.push(newProf);
+    $scope.selectedController = newProf;
+  };
+
+  // save edits for currently selected controller
+  $scope.saveSelectedController = function() {
+    if ( $scope.selectedController.id != null ) {
+      maelstrom.updateController( $scope.selectedController.id, $scope.selectedController.name, $scope.selectedController.address, $scope.selectedController.port, $scope.selectedController.socket, 
+        function() {
+          console.log('Controller: ' + $scope.selectedController.name + ' saved successfully');
+          $scope.$apply(function() {
+            $scope.controllerDetailClass = 'readonly';
+          });
+        }, 
+        function() {
+          console.log('Error saving controller: ' + $scope.selectedController.name);
+        }
+      );
+    } else {
+      maelstrom.createController( $scope.selectedController.name, $scope.selectedController.address, $scope.selectedController.port, $scope.selectedController.socket, 
+        function() {
+          console.log('Controller: ' + $scope.selectedController.name + ' created successfully');
+          $scope.$apply(function() {
+            $scope.controllerDetailClass = 'readonly';
+          });
+        }, 
+        function() {
+          console.log('Error creating controller: ' + $scope.selectedController.name);
+        }
+      );
+    }
+  };
+
+  // cancel controller edit - just reload them
+  $scope.cancelEditController = function() {
+    maelstrom.getControllers();
+    $scope.controllerDetailClass = 'empty';
+  };
 
 
   /********************** debugger, buttons to simulate events, etc ***********************/

@@ -7,6 +7,7 @@ from app import app, db, core, dao
 # data access managers
 setman = dao.AppSettingsManager()
 profman = dao.ProfileManager()
+ioman = dao.IOControllerManager()
 
 
 # main view - angular does most of the work here
@@ -37,7 +38,7 @@ def get_profiles():
 
 @app.route('/profiles', methods = ['POST'])
 def create_profile():
-	profs = profman.create_profile(json.loads(request.form["profile"]))
+	profman.create_profile(json.loads(request.form["profile"]))
 	return jsonify( { 'status': 'success' } )
 
 @app.route('/profile/<id>', methods = ['GET'])
@@ -48,6 +49,24 @@ def get_profile(id):
 @app.route('/profile/<id>', methods = ['POST'])
 def update_profile(id):
 	profman.update_profile(id, json.loads(request.form["profile"]))
+	return jsonify( { 'status': 'success' } )
+
+
+# controllers api
+
+@app.route('/iocontrollers', methods = ['GET'])
+def get_controllers():
+	controllers = ioman.get_controllers()
+	return jsonify( { 'controllers': controllers } )
+
+@app.route('/iocontrollers', methods = ['POST'])
+def create_controller():
+	ioman.create_controller(json.loads(request.form["iocontroller"]))
+	return jsonify( { 'status': 'success' } )
+
+@app.route('/iocontroller/<id>', methods = ['POST'])
+def update_controller(id):
+	ioman.update_controller(id, json.loads(request.form["iocontroller"]))
 	return jsonify( { 'status': 'success' } )
 
 

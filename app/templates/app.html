@@ -101,9 +101,14 @@
 				<div class="tab-pane panel-body">
 					<div class="col-md-6">
 						<div class="form-group">
-							<label>Profile Name</label>
+							<label>Name</label>
 							<p class="form-display">{{selectedController.name}}</p>
 							<input type="text" class="form-control" ng-model="selectedController.name" placeholder="Enter Controller Name">
+						</div>
+						<div class="form-group">
+							<label>Address</label>
+							<p class="form-display">{{selectedController.address}}</p>
+							<input type="text" class="form-control" ng-model="selectedController.address" placeholder="Enter Controller Address">
 						</div>
 					</div>
 					<div class="col-md-6">
@@ -112,8 +117,13 @@
 							<p class="form-display">{{selectedController.socket}}</p>
 							<input type="text" class="form-control" ng-model="selectedController.socket" placeholder="Enter Controller Socket">
 						</div>
+						<div class="form-group">
+							<label>Port</label>
+							<p class="form-display">{{selectedController.port}}</p>
+							<input type="text" class="form-control" ng-model="selectedController.port" placeholder="Enter Controller Port">
+						</div>
 					</div>
-					<div id="saveProfile">
+					<div id="saveController">
 						<button id="btnEditController" class="btn btn-primary {{controllerDetailClass}}" ng-click="editSelectedController()">Edit</button>
 						<button id="btnCancelEditController" class="btn btn-secondary {{controllerDetailClass}}" ng-click="cancelEditController()">Cancel</button>
 						<button id="btnSaveController" class="btn btn-primary {{controllerDetailClass}}" ng-click="saveSelectedController()">Save</button>
