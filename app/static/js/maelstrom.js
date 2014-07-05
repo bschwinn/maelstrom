@@ -17,7 +17,7 @@ Maelstrom.prototype = {
 		this.heartBeatMaxSkips = 2;
 		this.heartBeatCheckTimer = null;
 		this.heartBeatPingTimer = null;
-		this.handlers = { 'open' : [], 'closed' : [], 'message' : [], '_appsettings' : [], '_profiles' : [] };
+		this.handlers = { 'open' : [], 'closed' : [], 'message' : [], '_appsettings' : [], '_profiles' : [], '_iocontrollers' : [] };
 		this.connected = false;
 		this.connect();
 	},
@@ -46,7 +46,7 @@ Maelstrom.prototype = {
 		$.post(this.sendUrl, postData, function(){});
 	},
 	addHandler: function(evt, callback) {
-		if ( /open|closed|message|_appsettings|_profiles/.test(evt) ) {
+		if ( /open|closed|message|_appsettings|_profiles|_iocontrollers/.test(evt) ) {
 			this.handlers[evt].push(callback);
 		} else {
 			this.logMessage("Unsupported handler: " + evt);
@@ -214,13 +214,13 @@ MaelstromProfileSettings.prototype = {
 			type: "post", 
 			data: { profile: JSON.stringify( { "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
 			success: function(data) {
-				console.log("Profile: " + name + ", has been updated.");
+				console.log("Profile: " + name + ", has been created.");
 				if ( typeof(successHandler) !== 'undefined' ) {
 					successHandler(data);
 				}
 			},
             error: function(xhr, ajaxOptions, thrownError) {
-				console.log("Profile: " + name + ", FAILED TO UPDATE !!");
+				console.log("Profile: " + name + ", FAILED TO CREATE !!");
 				if ( typeof(failureHandler) !== 'undefined' ) {
 					failureHandler(thrownError);
 				}
@@ -252,6 +252,101 @@ MaelstromProfileSettings.prototype = {
 			type: "delete", 
 			success: function(data) {
 				console.log("Profile: " + profileId + ", has been deleted.");
+			}
+		});
+	}
+};
+
+
+// maelstrom controller configuration
+var MaelstromControllerSettings = function(mael, loadedHandler, changeHandler) {
+	if ( arguments.length > 0 ) this.init(mael, loadedHandler, changeHandler);
+}
+MaelstromControllerSettings.prototype = {
+	changeHandler: null,
+	loadedHandler: null,
+	init: function(mael, loadedHandler, changeHandler) {
+		this.urlControllers = '/iocontrollers';
+		this.urlController = '/iocontroller';
+		this.loadedHandler = loadedHandler;
+		this.changeHandler = changeHandler;
+		mael.subscribe('_iocontrollers');
+		mael.addHandler('_iocontrollers', function(data) {
+			var p, msg = data.message;
+			console.log("Controller change: " + msg.eventType);
+			if (msg.eventType != "delete") {
+				p = { eventType: msg.eventType, controllerId: msg.controller.id, controller: msg.controller };
+			} else {
+				p = { eventType: msg.eventType, controllerId: msg.controllerId };
+			}
+			changeHandler.call( this, p );
+		});
+		this.getControllers();
+	},
+	getControllers: function(handler) {
+		var that = this;
+		$.get(this.urlControllers, function(data) {
+			var profs = data.controllers;
+			if ( typeof(handler) !== 'undefined' ) {
+				handler(profs);
+			} else {
+				if ( that.loadedHandler != null) that.loadedHandler.call(that, { controllers: profs } );
+			}
+		});
+	},
+	getController: function(controllerId, handler) {
+		var that = this;
+		$.get(this.urlController+'/'+controllerId, function(data) {
+			var prof = data.controller;
+			if ( typeof(handler) !== 'undefined' ) {
+				handler(prof);
+			}
+		});
+	},
+	createController: function(name, theType, temperatures, events, successHandler, failureHandler) {
+		$.ajax({
+			url: this.urlControllers,
+			type: "post", 
+			data: { controller: JSON.stringify( { "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
+			success: function(data) {
+				console.log("Controller: " + name + ", has been created.");
+				if ( typeof(successHandler) !== 'undefined' ) {
+					successHandler(data);
+				}
+			},
+            error: function(xhr, ajaxOptions, thrownError) {
+				console.log("Controller: " + name + ", FAILED TO CREATE !!");
+				if ( typeof(failureHandler) !== 'undefined' ) {
+					failureHandler(thrownError);
+				}
+			}
+		});
+	},
+	updateController: function(id, name, theType, temperatures, events, successHandler, failureHandler) {
+		$.ajax({
+			url: this.urlController+'/'+id, 
+			type: "post", 
+			data: { controller: JSON.stringify( { "id" : id, "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
+			success: function(data) {
+				console.log("Controller: " + name + ", has been updated.");
+				if ( typeof(successHandler) !== 'undefined' ) {
+					successHandler(data);
+				}
+			},
+            error: function(xhr, ajaxOptions, thrownError) {
+				console.log("Controller: " + name + ", FAILED TO UPDATE !!");
+				if ( typeof(failureHandler) !== 'undefined' ) {
+					failureHandler(thrownError);
+				}
+			}
+		});
+	},
+	deleteController: function(controllerId) {
+		$.ajax({
+			url: this.urlController+'/'+controllerId, 
+			type: "delete", 
+			success: function(data) {
+				console.log("Controller: " + controllerId + ", has been deleted.");
 			}
 		});
 	}

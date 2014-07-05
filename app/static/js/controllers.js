@@ -74,6 +74,17 @@ function BrewCtrl($scope, $document, maelstrom) {
       }
     );
 
+    // load up controllers
+    maelstrom.loadControllers(
+      function (data) { 
+        $scope.controllers = data.controllers;
+        $scope.selectControllers($scope.selectedControllers.id);
+      },
+      function (data) {
+        maelstrom.getControllers();
+      }
+    );
+
   });
 
   // maelstrom connection closed handler
@@ -161,19 +172,43 @@ function BrewCtrl($scope, $document, maelstrom) {
     $scope.profileEditor.render( $scope.selectedProfile );
   };
 
+  // turn on edit mode for currently selected profile
+  $scope.newProfile = function() {
+    $scope.profileDetailClass = 'new';
+    $scope.profileEditor.config.editable = true;
+    var newProf = { "id" : null, "name" : "New Profile", "type" : "", "temperatures" : [], "events" : [] };
+    $scope.profiles.push(newProf);
+    $scope.selectedProfile = newProf;
+    $scope.profileEditor.render( $scope.selectedProfile );
+  };
+
   // save edits for currently selected profile
   $scope.saveSelectedProfile = function() {
-    maelstrom.updateProfile( $scope.selectedProfile.id, $scope.selectedProfile.name, $scope.selectedProfile.type, $scope.profileEditor.toJSON().temperatures, [], 
-      function() {
-        console.log('Profile: ' + $scope.selectedProfile.name + ' saved successfully');
-        $scope.$apply(function() {
-          $scope.profileDetailClass = 'readonly';
-        });
-      }, 
-      function() {
-        console.log('Error saving profile: ' + $scope.selectedProfile.name);
-      }
-    );
+    if ( $scope.selectedProfile.id != null ) {
+      maelstrom.updateProfile( $scope.selectedProfile.id, $scope.selectedProfile.name, $scope.selectedProfile.type, $scope.profileEditor.toJSON().temperatures, [], 
+        function() {
+          console.log('Profile: ' + $scope.selectedProfile.name + ' saved successfully');
+          $scope.$apply(function() {
+            $scope.profileDetailClass = 'readonly';
+          });
+        }, 
+        function() {
+          console.log('Error saving profile: ' + $scope.selectedProfile.name);
+        }
+      );
+    } else {
+      maelstrom.createProfile( $scope.selectedProfile.name, $scope.selectedProfile.type, $scope.profileEditor.toJSON().temperatures, [], 
+        function() {
+          console.log('Profile: ' + $scope.selectedProfile.name + ' created successfully');
+          $scope.$apply(function() {
+            $scope.profileDetailClass = 'readonly';
+          });
+        }, 
+        function() {
+          console.log('Error creating profile: ' + $scope.selectedProfile.name);
+        }
+      );
+    }
   };
 
   // cancel profile edit - just reload them

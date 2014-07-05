@@ -95,7 +95,7 @@ class ProfileManager():
         session.add(profile)
         session.commit()
         # publish a change event 
-        prof = dict( id = profile.id, name = profile.name, temperatures = profile.temperatures, events = profile.events)
+        prof = dict( id = profile.id, name = profile.name, temperatures = [self.fromProfileTemp(profile.id, pt) for pt in profile.temperatures], events = [self.fromProfileTemp(profile.id, pe) for pe in profile.events])
         p = dict( eventType = "create", profile = prof )
         core.theMan.publishMessage("_profiles", json.dumps(dict( channel = "_profiles", payload = p )))
 

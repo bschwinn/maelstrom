@@ -78,6 +78,41 @@ app.factory('maelstrom', function ($rootScope) {
     },
     updateProfile: function (id, name, theType, temperatures, events, successHandler, failureHandler) {
       profman.updateProfile(id, name, theType, temperatures, events, successHandler, failureHandler);
+    },
+    createProfile: function (name, theType, temperatures, events, successHandler, failureHandler) {
+      profman.createProfile(name, theType, temperatures, events, successHandler, failureHandler);
+    },
+    loadControllers: function (loadedHandler, changeHandler) {
+      if (ioman==null) {
+        ioman = new MaelstromControllerSettings(
+          maelstrom
+          , function (data) {  
+            var args = arguments;
+            $rootScope.$apply(function () {
+              loadedHandler.call(ioman, data);
+            });
+          }
+          , function (data) {  
+            var args = arguments;
+            $rootScope.$apply(function () {
+              changeHandler.call(ioman, data);
+            });
+          });
+      } else {
+        ioman.init(maelstrom);
+      }
+    },
+    getControllers: function (callback) {
+      ioman.getControllers(callback);
+    },
+    getController: function (id, callback) {
+      ioman.getController(id, callback);
+    },
+    updateController: function (id, name, theType, temperatures, events, successHandler, failureHandler) {
+      ioman.updateController(id, name, theType, temperatures, events, successHandler, failureHandler);
+    },
+    createController: function (name, theType, temperatures, events, successHandler, failureHandler) {
+      ioman.createController(name, theType, temperatures, events, successHandler, failureHandler);
     }
   };
 });

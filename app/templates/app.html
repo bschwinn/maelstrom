@@ -6,16 +6,22 @@
 <div id="mainTabs">
 	<ul id="mainTabNav" class="nav nav-tabs" brew-tabs>
 		<li style="margin-left:10px;"><a href="#profiles" class="active" data-toggle="tab"><span>Profiles</span></a></li>
-		<li><a href="#appsettings" class="active" data-toggle="tab"><span>App Settings</span></a></li>
+		<li><a href="#appsettings" data-toggle="tab"><span>App Settings</span></a></li>
+		<li><a href="#controllers" data-toggle="tab"><span>uControllers</span></a></li>
 		<li><a href="#debuggerDiv" data-toggle="tab"><span>Debugger</span></a></li>
 	</ul>
 	<div id="mainTabContent" class="tab-content panel panel-default">
 
 		<!-- profile library -->
 		<div id="profiles" class="tab-pane active panel-body">
-			<ul id="profilelist" class="nav nav-pills nav-stacked col-md-3" brew-tabs>
-				<li ng-repeat="profile in profiles" class="{{selectedProfile.id == profile.id ? 'active' : ''}}"><a href="#profile_{{profile.id}}" ng-click="selectProfile(profile.id)" data-toggle="tab">{{profile.name}}</a></li>
-			</ul>
+			<div id="profilelist" class="col-md-3">
+				<ul class="nav nav-pills nav-stacked" brew-tabs>
+					<li ng-repeat="profile in profiles" class="{{selectedProfile.id == profile.id ? 'active' : ''}}"><a href="#profile_{{profile.id}}" ng-click="selectProfile(profile.id)" data-toggle="tab">{{profile.name}}</a></li>
+				</ul>
+				<div id="newProfile">
+					<button id="btnNewProf" type="button" class="btn btn-primary" ng-click="newProfile()">&plus;</button>
+				</div>
+			</div>
 			<div id="profileDetail" class="col-md-9 panel panel-primary {{profileDetailClass}}">
 				<div class="tab-pane panel-body">
 					<div class="col-md-6">
@@ -80,6 +86,43 @@
 			</div>
 			<br class="crystal" />
 		</div>
+
+		<!-- controllers/device setup -->
+		<div id="controllers" class="tab-pane active panel-body">
+			<div id="controllerlist" class="col-md-3">
+				<ul class="nav nav-pills nav-stacked" brew-tabs>
+					<li ng-repeat="controller in controllers" class="{{selectedController.id == controller.id ? 'active' : ''}}"><a href="#controller_{{controller.id}}" ng-click="selectController(controller.id)" data-toggle="tab">{{controller.name}}</a></li>
+				</ul>
+				<div id="newController">
+					<button id="btnController" type="button" class="btn btn-primary" ng-click="newController()">&plus;</button>
+				</div>
+			</div>
+			<div id="controllerDetail" class="col-md-9 panel panel-primary {{controllerDetailClass}}">
+				<div class="tab-pane panel-body">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label>Profile Name</label>
+							<p class="form-display">{{selectedController.name}}</p>
+							<input type="text" class="form-control" ng-model="selectedController.name" placeholder="Enter Controller Name">
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label>Socket</label>
+							<p class="form-display">{{selectedController.socket}}</p>
+							<input type="text" class="form-control" ng-model="selectedController.socket" placeholder="Enter Controller Socket">
+						</div>
+					</div>
+					<div id="saveProfile">
+						<button id="btnEditController" class="btn btn-primary {{controllerDetailClass}}" ng-click="editSelectedController()">Edit</button>
+						<button id="btnCancelEditController" class="btn btn-secondary {{controllerDetailClass}}" ng-click="cancelEditController()">Cancel</button>
+						<button id="btnSaveController" class="btn btn-primary {{controllerDetailClass}}" ng-click="saveSelectedController()">Save</button>
+					</div>
+				</div>
+				<div class="empty-prompt {{controllerDetailClass}}">Pick a controller already</div>
+			</div>
+		</div>
+
 
 		<!-- debugger content -->
 		<div id="debuggerDiv" class="tab-pane panel-body">

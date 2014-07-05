@@ -10,14 +10,13 @@ a, a:hover { text-decoration: none; }
 #mainTabContent { min-height: 300px; border: 1px solid #ddd; }
 
 #lcdDiv { 
-	height:130px;
+	height:120px;
 	border-radius:5px;
 	padding:10px;
 }
 
 #logoDiv {
-	height:140px;
-	padding:0 10px; 
+	height:120px;
 }
 #connStatus { height:18px; margin: 5px 0 0 0; }
 #connStatusLight { height:18px; width:18px; border-radius: 10px; border: solid 1px black; background: #777; }
@@ -31,19 +30,20 @@ a, a:hover { text-decoration: none; }
 #alarmsAck span { padding:3px 5px; }
 #alarmsAck.alarm { display:block; }
 
-#alarmsDiv { height:130px; border-radius:5px; padding:10px; overflow:auto; }
+#alarmsDiv { height:120px; border-radius:5px; padding:10px; overflow:auto; }
 
-#appsettingslist, #profilelist { min-height: 300px; padding:10px 0 0 0; margin:0; }
+#appsettingslist, #profilelist { min-height: 400px; position:relative; padding:10px 0 0 0; margin:0; }
 #appsettingslist li a, #profilelist li a { border-top-right-radius: 0px; border-bottom-right-radius: 0px; }
 #appsettingsMain, #profileDetail { min-height: 400px; position:relative; }
 #saveAppSettings, #saveProfile { bottom:15px; right:25px; position:absolute; }
+#newProfile { bottom:15px; left:0px; position:absolute; }
 
 #profileDetail.empty .panel-body { display:none; }
-#profileDetail.edit .form-display { display:none; }
-#profileDetail.edit .empty-prompt, #profileDetail.readonly .empty-prompt { display:none; }
+#profileDetail.edit .form-display, #profileDetail.new .form-display { display:none; }
+#profileDetail.edit .empty-prompt, #profileDetail.new .empty-prompt, #profileDetail.readonly .empty-prompt { display:none; }
 #profileDetail.readonly .form-control { display:none; }
 
-#profileDetail.edit #btnEditProf, #profileDetail.empty #btnEditProf {display: none; }
+#profileDetail.edit #btnEditProf, #profileDetail.new #btnEditProf, #profileDetail.empty #btnEditProf {display: none; }
 #profileDetail.readonly #btnCancelEditProf, #profileDetail.readonly #btnSaveProf, #profileDetail.empty #btnCancelEditProf, #profileDetail.empty #btnSaveProf {display: none; }
 
 .profileTableMenu {
@@ -57,3 +57,11 @@ a, a:hover { text-decoration: none; }
 .profileTableMenu UL LI:last-child { border-bottom: 1px solid #fff; }
 .profileTableMenu UL LI:hover { color:#fff; border: 1px solid #4297d7; background: #5c9ccc; }
 
+
+#controllerDetail.empty .panel-body { display:none; }
+#controllerDetail.edit .form-display, #controllerDetail.new .form-display { display:none; }
+#controllerDetail.edit .empty-prompt, #controllerDetail.new .empty-prompt, #controllerDetail.readonly .empty-prompt { display:none; }
+#controllerDetail.readonly .form-control { display:none; }
+
+#controllerDetail.edit #btnEditController, #controllerDetail.new #btnEditController, #controllerDetail.empty #btnEditController {display: none; }
+#controllerDetail.readonly #btnCancelEditController, #controllerDetail.readonly #btnSaveController, #controllerDetail.empty #btnCancelEditController, #controllerDetail.empty #btnSaveController {display: none; }
