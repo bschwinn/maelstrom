@@ -65,23 +65,14 @@ class AppSettingsManager():
 ###################################################
 
 class ProfileManager():
+    
     def get_profiles(self):
         session = db.DBSession()
         profiles = session.query(db.Profile).all()
         c = []
         for profile in profiles:
-            temps = []
-            for temp in profile.temperatures:
-                dt = ''
-                if temp.date is not None:
-                    dt = temp.date.strftime('%Y-%m-%dT%H:%M:%S')
-                temps.append(dict(id = temp.id, days = temp.day, date = dt, temperature = temp.temperature))
-            evts = []
-            for event in profile.events:
-                dt = ''
-                if event.date is not None:
-                    dt = event.date.strftime('%Y-%m-%dT%H:%M:%S')
-                evts.append(dict(id = event.id, days = event.day, date = dt, eventText = event.eventText))
+            temps = [self.fromProfileTemp(profile.id, pt) for pt in profile.temperatures]
+            evts = [self.fromProfileTemp(profile.id, pe) for pe in profile.events]
             c.append(dict( id = profile.id, name = profile.name, type = profile.type, temperatures = temps, events = evts ))
         return c
 
@@ -89,13 +80,9 @@ class ProfileManager():
         pid = int(profileid)
         session = db.DBSession()
         profile = session.query(db.Profile).filter(db.Profile.id == pid).one()
-        temps = []
-        for temp in profile.temperatures:
-            dt = ''
-            if temp.date is not None:
-                dt = temp.date.strftime('%Y-%m-%dT%H:%M:%S')
-            temps.append(dict(id = temp.id, days = temp.day, date = dt, temperature = temp.temperature))
-        profDic = dict( id = profile.id, name = profile.name, type = profile.type, temperatures = temps )
+        temps = [self.fromProfileTemp(profile.id, pt) for pt in profile.temperatures]
+        evts = [self.fromProfileTemp(profile.id, pe) for pe in profile.events]
+        profDic = dict( id = profile.id, name = profile.name, type = profile.type, temperatures = temps, events = evts )
         return profDic
 
     def create_profile(self, prof):
