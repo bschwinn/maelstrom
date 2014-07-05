@@ -191,7 +191,7 @@ MaelstromProfileSettings.prototype = {
 	getProfiles: function(handler) {
 		var that = this;
 		$.get(this.urlProfiles, function(data) {
-			var profs = $.parseJSON(data);
+			var profs = data.profiles;
 			if ( typeof(handler) !== 'undefined' ) {
 				handler(profs);
 			} else {
@@ -202,11 +202,9 @@ MaelstromProfileSettings.prototype = {
 	getProfile: function(profileId, handler) {
 		var that = this;
 		$.get(this.urlProfile+'/'+profileId, function(data) {
-			var prof = $.parseJSON(data);
+			var prof = data.profile;
 			if ( typeof(handler) !== 'undefined' ) {
 				handler(prof);
-			} else {
-				$(document).trigger( 'maelstromProfileLoaded', { profile: prof } );
 			}
 		});
 	},

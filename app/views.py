@@ -4,13 +4,18 @@ import simplejson as json
 
 from app import app, db, core, dao
 
-setman = web.AppSettingsManager()
+# data access managers
+setman = dao.AppSettingsManager()
+profman = dao.ProfileManager()
 
 
+# main view - angular does most of the work here
 @app.route('/', methods = ['GET'])
 def get_app():
 	return render_template("app.html", title = 'Maelstrom - A BrewPi Interface')
 
+
+# app settings api
 
 @app.route('/appsettings', methods = ['GET'])
 def get_appsettings():
@@ -23,6 +28,20 @@ def save_appsettings():
 	return jsonify( { 'status': 'success' } )
 
 
+# profiles api
+
+@app.route('/profiles', methods = ['GET'])
+def get_profiles():
+	profs = profman.get_profiles()
+	return jsonify( { 'profiles': profs } )
+
+@app.route('/profile/<id>', methods = ['GET'])
+def get_profile(id):
+	prof = profman.get_profile(id)
+	return jsonify( { 'profile': prof } )
+
+
+# error response handlers
 
 @app.errorhandler(404)
 def not_found(error):
