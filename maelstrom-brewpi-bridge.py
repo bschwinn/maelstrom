@@ -9,14 +9,23 @@ from config import SQLALCHEMY_DATABASE_URI
 #  - reads controller config from maelstrom and for each controller:
 #  - connects to socket and aggregates controller data, then creates
 #  - a maelstrom data update event and publishes it to maelstrom server.
+#  - lcd response:	['Mode   Off          ', 'Beer   65.1  --.- &degF', 'Fridge 65.9  --.- &degF', 'Idling for  17h30m55']
+#  - cs  response:	{'profile': 'Sound Czech Pilsner', 'heatEst': 1.855, 'fridgeSet': 82.26, 'dataLogging': 'active', 'beerSet': 64.26, 'mode': 'p', 'coolEst': 22.16}
 class BrewPiBridge:
 
 	posturl = "http://localhost:8888/publish"
+	controllers = []
+
+	def __init__(self, ctrlrs):
+		controllers = []
+		for ctrlr in ctrlrs:
+			controllers.append(dict( id = ctrlr.id, name = ctrlr.name, address = ctrlr.address, port = ctrlr.port, socket = ctrlr.socket, bv = '0.0', fv = '0.0', rv = '0.0' ))
+		self.controllers = controllers
 
 	def getData(self, controller, msg):
 
 		# TODO deal with inet sockets
-		sock = controller.socket
+		sock = controller['socket']
 
 		if os.path.exists(sock):
 			try:
@@ -35,7 +44,7 @@ class BrewPiBridge:
 	def parseData(self, data):
 		return json.loads(data)
 
-	def postData(self, channel, msg):
+	def postMessage(self, channel, msg):
 		data = urllib.urlencode(dict( channel = channel, data = json.dumps(msg) ))
 		request = urllib2.Request(self.posturl, data)
 		try: 
@@ -43,46 +52,44 @@ class BrewPiBridge:
 		except urllib2.URLError, e:
 		    print e
 
-	def createDataMessageTemplate(self, pload):
-		return dict( channel = "data", payload = pload )
-
 	def createDataMessage(self, controller, lcd, cs):
 		larr = []
-		bv="0.0"
-		fv="0.0"
-		rv="0.0"
 		for line in lcd:
 			if ( line.startswith('Beer') ):
-				bv = line[7:11]
+				controller['bv'] = line[7:11]
 			elif ( line.startswith('Fridge') ):
-				fv = line[7:11]
+				controller['fv'] = line[7:11]
 			elif ( line.startswith('Room') ):
-				rv = line[7:11]
+				controller['rv'] = line[7:11]
 			larr.append(line)
-		payload = dict( controllerId = controller.id, controllerName = controller.name, fridge = fv, fridgeSet = cs['fridgeSet'], beer = bv, beerSet = cs['beerSet'], room = rv, status = larr[-1])
+		payload = dict( controllerId = controller['id'], controllerName = controller['name'], fridge = controller['fv'], fridgeSet = cs['fridgeSet'], beer = controller['bv'], beerSet = cs['beerSet'], room = controller['rv'], status = larr[-1])
 		if cs['mode'] == 'p':
 			payload.update( dict(profile = cs['profile']))
-		return self.createDataMessageTemplate(payload)
+		return dict( channel = "data", payload = payload )
 
-# create the maelstrom -> brewpi bridge
-bridge = BrewPiBridge()
+	def scan(self):
+		for controller in self.controllers:
+
+			lcd = self.getData(controller, "lcd")
+			cs  = self.getData(controller, "getControlSettings")
+			msg = self.createDataMessage(controller, lcd, cs)
+
+			print str(msg)
+
+			self.postMessage("data", msg)
+
+
 
 # init db connection - this may create it if not there ?!?
 db.init_db( SQLALCHEMY_DATABASE_URI )
 
+# create the maelstrom -> brewpi bridge
+bridge = BrewPiBridge( db.DBSession().query(db.IOController).all() )
+
 while True:
 
-	for controller in db.DBSession().query(db.IOController).all():
-
-		lcd = bridge.getData(controller, "lcd")
-		# ['Mode   Off          ', 'Beer   65.1  --.- &degF', 'Fridge 65.9  --.- &degF', 'Idling for  17h30m55']
-		cs  = bridge.getData(controller, "getControlSettings")
-		# {'profile': 'Sound Czech Pilsner', 'heatEst': 1.855, 'fridgeSet': 82.26, 'dataLogging': 'active', 'beerSet': 64.26, 'mode': 'p', 'coolEst': 22.16}
-
-		msg = bridge.createDataMessage(controller, lcd, cs)
-
-		print str(msg)
-
-		bridge.postData("data", msg)
+	bridge.scan()
 
 	time.sleep(7)
+
+
