@@ -79,12 +79,10 @@ app.directive('brewDataSlider', function($timeout) {
               scope.currentIndex > 0 ? scope.currentIndex-- : scope.currentIndex = scope.controllers.length - 1;
             };            
             scope.$watch('currentIndex', function() {
-              if ( scope.controllers.length > 0 ) {
-                  scope.controllers.forEach(function(controller) {
-                    controller.brewSliderVisible = false; // make every controller's data invisible
-                  });
-                  scope.controllers[scope.currentIndex].brewSliderVisible = true; // make the current controller's data visible
-              }
+                scope.controllers.forEach(function(c) { controller.brewSliderVisible = false; });
+                if ( scope.controllers.length > 0 ) {
+                    scope.controllers[scope.currentIndex].brewSliderVisible = true; // make the current controller's data visible
+                }
             });
 
             // auto-slide
