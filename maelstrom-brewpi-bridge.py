@@ -52,6 +52,7 @@ class BrewPiBridge:
 		except urllib2.URLError, e:
 		    print e
 
+	# {'status': 'Idling for  11h02m02', 'fridgeSet': None, 'room': '65.2', 'controllerId': 1, 'fridge': '65.3', 'beerSet': None, 'beer': '64.4', 'controllerName': u'BrewPi One'}, 'channel': 'data'}
 	def createDataMessage(self, controller, lcd, cs):
 		larr = []
 		for line in lcd:

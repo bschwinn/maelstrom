@@ -1,6 +1,9 @@
 <div class="brewDataSlider">
   <div class="brewDataItem" ng-repeat="controller in controllers" ng-show="controller.brewSliderVisible">
     <div>{{controller.name}}</div>
+    <div>Fridge: {{controller.data.fridge}}</div>
+    <div>Beer: {{controller.data.beer}}</div>
+    <div>Room: {{controller.data.room}}</div>
     <div>{{controller.data.status}}</div>
   </div>
 </div>
