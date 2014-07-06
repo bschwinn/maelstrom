@@ -38,6 +38,7 @@ function BrewCtrl($scope, $document, maelstrom) {
 
   // controllers model and stuffs
   $scope.controllers = [];
+  $scope.controllerDatas = {};
   $scope.selectedController = {};
   $scope.controllerDetailClass = 'empty';
 
@@ -53,7 +54,7 @@ function BrewCtrl($scope, $document, maelstrom) {
     $scope.connStatus = CONN_STATUS[evt.status];
 
     // subscribe to channels
-    $(['alarms', 'data', 'logs', 'lcd']).each(function(idx, key) {
+    $(['alarms', 'data', 'logs']).each(function(idx, key) {
       maelstrom.subscribe(key);
     });
 
@@ -98,7 +99,6 @@ function BrewCtrl($scope, $document, maelstrom) {
 
   // maelstrom message handler
   maelstrom.addHandler('message', function (msgObj) {
-    console.log("Maelstrom message recieved on channel: " + msgObj.channel);
     var payload = msgObj.message;
     switch (msgObj.channel) {
 
@@ -117,6 +117,10 @@ function BrewCtrl($scope, $document, maelstrom) {
           $(payload.entries).each(function(idx,val) {
             $scope.deviceLogEntries.push(val);
           });
+        break;
+
+      case "data" :
+        $scope.controllerDatas[payload.controllerId] = payload;
         break;
     }
   });

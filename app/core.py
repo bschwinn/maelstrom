@@ -13,9 +13,7 @@ class ConnectionMgr:
     connections = []
     channels = { 
         'data' : [], 
-        'chart' : [], 
         'logs' : [], 
-        'lcd' : [], 
         'alarms' : [],
         '_profiles' : [],
         '_iocontrollers' : [],
