@@ -33,7 +33,6 @@ function BrewCtrl($scope, $document, maelstrom) {
   $scope.profiles = [];
   $scope.selectedProfile = {};
   $scope.profileDetailClass = 'empty';
-
   $scope.profileEditor = null;
 
   // controllers model and stuffs
@@ -120,7 +119,13 @@ function BrewCtrl($scope, $document, maelstrom) {
         break;
 
       case "data" :
-        $scope.controllerDatas[payload.controllerId] = payload;
+        for (var i=$scope.controllers.length - 1; i >= 0; i--) {
+          var c = $scope.controllers[i];
+          if ( c.id == payload.controllerId ) {
+            c.data = payload;
+          }
+          break;
+        };
         break;
     }
   });

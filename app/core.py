@@ -12,13 +12,11 @@ class ConnectionMgr:
 
     connections = []
     channels = { 
+        'alarms' : [],
         'data' : [], 
         'logs' : [], 
-        'alarms' : [],
         '_profiles' : [],
         '_iocontrollers' : [],
-        '_iochambers' : [],
-        '_iodevices' : [],
         '_appsettings' : []
     }
 

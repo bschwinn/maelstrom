@@ -62,6 +62,50 @@ app.directive('brewProfileChart', function($filter) {
     };
 });
 
+app.directive('brewDataSlider', function($timeout) {
+    return {
+        restrict: 'AE',
+        replace: true,
+        scope: {
+          controllers: '='
+        },
+        link: function(scope, elem, attrs) {
+            // indexing
+            scope.currentIndex = 0;
+            scope.next = function() {
+              scope.currentIndex < scope.controllers.length - 1 ? scope.currentIndex++ : scope.currentIndex = 0;
+            };
+            scope.prev = function() {
+              scope.currentIndex > 0 ? scope.currentIndex-- : scope.currentIndex = scope.controllers.length - 1;
+            };            
+            scope.$watch('currentIndex', function() {
+              if ( scope.controllers.length > 0 ) {
+                  scope.controllers.forEach(function(controller) {
+                    controller.brewSliderVisible = false; // make every controller's data invisible
+                  });
+                  scope.controllers[scope.currentIndex].brewSliderVisible = true; // make the current controller's data visible
+              }
+            });
+
+            // auto-slide
+            var timer;
+            var sliderFunc = function() {
+              timer = $timeout(function() {
+                scope.next();
+                timer = $timeout(sliderFunc, 5000);
+              }, 5000);
+            };
+            sliderFunc();
+
+            // destroy all the things
+            scope.$on('$destroy', function() {
+              $timeout.cancel(timer); // when the scope is getting destroyed, cancel the timer
+            });
+        },
+        templateUrl: 's/js/templates/brewDataSlider.html'
+    };
+});
+
 // courtesy of Luegg: https://github.com/Luegg/angularjs-scroll-glue
 app.directive('brewAutoScroll', function(){
 
