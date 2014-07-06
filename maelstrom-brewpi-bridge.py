@@ -73,9 +73,6 @@ class BrewPiBridge:
 			lcd = self.getData(controller, "lcd")
 			cs  = self.getData(controller, "getControlSettings")
 			msg = self.createDataMessage(controller, lcd, cs)
-
-			print str(msg)
-
 			self.postMessage("data", msg)
 
 
