@@ -48,9 +48,15 @@ class BrewPiBridge:
 
 	def createDataMessage(self, controller, lcd, cs):
 		larr = []
+		bv="0.0"
+		fv="0.0"
 		for line in lcd:
+			if ( line.startswith('Beer') ):
+				bv = line[6:10]
+			elif ( line.startswith('Fridge') ):
+				fv = line[6:10]
 			larr.append(line)
-		payload = dict( id = controller.id, name = controller.name, fridgeSet = cs['fridgeSet'], beerSet = cs['beerSet'], status = larr[-1])
+		payload = dict( controllerId = controller.id, controllerName = controller.name, fridge = fv, fridgeSet = cs['fridgeSet'], beer = bv, beerSet = cs['beerSet'], status = larr[-1])
 		if cs['mode'] == 'p':
 			payload.update( dict(profile = cs['profile']))
 		return self.createDataMessageTemplate(payload)
