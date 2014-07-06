@@ -43,34 +43,17 @@ class BrewPiBridge:
 		except urllib2.URLError, e:
 		    print e
 
-	def createDataMessageTemplate(self):
-		return dict( channel = "data", payload = dict( controllers = [] ) )
+	def createDataMessageTemplate(self, pload):
+		return dict( channel = "data", payload = pload )
 
-	def createLCDMessageTemplate(self):
-		return dict( channel = "lcd", payload = dict( lcd = [] ) )
-
-	def createChamberDic(self, chamber, cs):
-		vars = dict( sp = 46.0, pv = 47.0, sp2 = 35.8, pv2 = 46.7 )
-		mode = "profile"
-		state = "cooling"
-		time = 1000
-		return dict( id = chamber.id, name = chamber.name, variables = vars, mode = mode, state = state, time = time )
-
-	def createLCDMessage(self, controller, lcd):
-		msg = self.createLCDMessageTemplate()
-		larr = msg["payload"]["lcd"]
+	def createDataMessage(self, controller, lcd, cs):
+		larr = []
 		for line in lcd:
 			larr.append(line)
-		return msg
-
-	def createDataMessage(self, controller, cs):
-		msg = self.createDataMessageTemplate()
-		charr = []
-		carr = msg["payload"]["controllers"]
-		carr.append( dict( id = controller.id, name = controller.name, chambers = charr) )
-		for chamber in controller.chambers:
-			charr.append(self.createChamberDic(chamber, cs))
-		return msg
+		payload = dict( id = controller.id, name = controller.name, fridgeSet = cs['fridgeSet'], beerSet = cs['beerSet'], status = larr[-1])
+		if cs['mode'] == 'p':
+			payload.update( dict(profile = cs['profile']))
+		return self.createDataMessageTemplate(payload)
 
 # create the maelstrom -> brewpi bridge
 bridge = BrewPiBridge()
@@ -83,12 +66,14 @@ while True:
 	for controller in db.DBSession().query(db.IOController).all():
 
 		lcd = bridge.getData(controller, "lcd")
+		# ['Mode   Off          ', 'Beer   65.1  --.- &degF', 'Fridge 65.9  --.- &degF', 'Idling for  17h30m55']
 		cs  = bridge.getData(controller, "getControlSettings")
 		# {'profile': 'Sound Czech Pilsner', 'heatEst': 1.855, 'fridgeSet': 82.26, 'dataLogging': 'active', 'beerSet': 64.26, 'mode': 'p', 'coolEst': 22.16}
 
-		msg = bridge.createDataMessage(controller, cs)
+		msg = bridge.createDataMessage(controller, lcd, cs)
+
+		print str(msg)
+
 		bridge.postData("data", msg)
-		lmsg = bridge.createLCDMessage(controller, lcd)
-		bridge.postData("lcd", lmsg)
 
 	time.sleep(7)
