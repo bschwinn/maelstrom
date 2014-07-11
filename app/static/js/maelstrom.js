@@ -4,11 +4,12 @@
 
 
 // maelstrom socket connection and pub/sub
-var Maelstrom = function(config) {
-	if ( arguments.length > 0 ) this.init(config);
+var Maelstrom = function(http, config) {
+	if ( arguments.length > 0 ) this.init(http, config);
 };
 Maelstrom.prototype = {
-	init: function(config) {
+	init: function(http, config) {
+		this.http = http;
 		this.config = config;
 		this.socketUrl = ( (window.location.protocol.indexOf('https') > -1) ? 'wss:' : 'ws:') + '//' + window.location.host + '/socket';
 		this.sendUrl = '/publish';
@@ -59,6 +60,21 @@ Maelstrom.prototype = {
 			for(var i=0; i < this.handlers[evt].length; i++) {
 				this.handlers[evt][i].call(this, data);
 			}
+		}
+	},
+	getData: function( url, successCallback, failureCallback ) {
+		if ( this.http !== null && typeof (this.http) !== 'undefined' ) {
+			this.http.get(url).success(successCallback).error(failureCallback);
+		}
+	},
+	postData: function( url, data, successCallback, failureCallback ) {
+		if ( this.http !== null && typeof (this.http) !== 'undefined' ) {
+			this.http.post(url, data).success(successCallback).error(failureCallback);
+		}
+	},
+	deleteData: function( url, successCallback, failureCallback ) {
+		if ( this.http !== null && typeof (this.http) !== 'undefined' ) {
+			this.http( { method: 'delete', url: url }).success(successCallback).error(failureCallback);
 		}
 	},
 	createHeartBeatChecker: function() {
@@ -137,6 +153,7 @@ MaelstromAppSettings.prototype = {
 	changeHandler: null,
 	loadedHandler: null,
 	init: function(mael, loadedHandler, changeHandler) {
+		this.mael = mael;
 		this.loadedHandler = loadedHandler;
 		this.changeHandler = changeHandler;
 		mael.subscribe('_appsettings');
@@ -147,19 +164,24 @@ MaelstromAppSettings.prototype = {
 	},
 	getSettings: function() {
 		var that = this;
-		$.get(this.url, function(data) {
+		this.mael.getData(this.url, function(data) {
 			if ( that.loadedHandler != null) that.loadedHandler.call(that, { settings: data } );
 		});
 	},
 	saveSetting: function(name, val) {
-		$.post(this.url, { name: name, "value": val }, function(data) {
+		this.mael.postData(this.url, { name: name, "value": val }, function(data) {
 			console.log("Setting: " + name + ", has been saved.");
 		});
   	},
 	saveSettings: function(settings) {
-		$.post(this.url, { settings: JSON.stringify(settings) }, function(data) {
-			console.log("Settings has been saved.");
-		});
+		this.mael.postData(this.url, settings,
+			function(data) {
+				console.log("Settings has been saved.");
+			},
+			function(data,status) {
+				console.log("ERROR: Settings not saved.");
+			}
+		);
 	}
 };
 
@@ -171,6 +193,7 @@ MaelstromProfileSettings.prototype = {
 	changeHandler: null,
 	loadedHandler: null,
 	init: function(mael, loadedHandler, changeHandler) {
+		this.mael = mael;
 		this.urlProfiles = '/profiles';
 		this.urlProfile = '/profile';
 		this.loadedHandler = loadedHandler;
@@ -190,7 +213,7 @@ MaelstromProfileSettings.prototype = {
 	},
 	getProfiles: function(handler) {
 		var that = this;
-		$.get(this.urlProfiles, function(data) {
+		this.mael.getData(this.urlProfiles, function(data) {
 			var profs = data.profiles;
 			if ( typeof(handler) !== 'undefined' ) {
 				handler(profs);
@@ -201,7 +224,7 @@ MaelstromProfileSettings.prototype = {
 	},
 	getProfile: function(profileId, handler) {
 		var that = this;
-		$.get(this.urlProfile+'/'+profileId, function(data) {
+		this.mael.getData(this.urlProfile+'/'+profileId, function(data) {
 			var prof = data.profile;
 			if ( typeof(handler) !== 'undefined' ) {
 				handler(prof);
@@ -209,51 +232,45 @@ MaelstromProfileSettings.prototype = {
 		});
 	},
 	createProfile: function(name, theType, temperatures, events, successHandler, failureHandler) {
-		$.ajax({
-			url: this.urlProfiles,
-			type: "post", 
-			data: { 'profile': JSON.stringify( { "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
-			success: function(data) {
+		var pData = { "name" : name, "type": theType, "temperatures": temperatures, "events": events };
+		this.mael.postData( this.urlProfiles, pData, 
+			function(data) {
 				console.log("Profile: " + name + ", has been created.");
 				if ( typeof(successHandler) !== 'undefined' ) {
 					successHandler(data);
 				}
 			},
-            error: function(xhr, ajaxOptions, thrownError) {
+            function(data, status) {
 				console.log("Profile: " + name + ", FAILED TO CREATE !!");
 				if ( typeof(failureHandler) !== 'undefined' ) {
-					failureHandler(thrownError);
+					failureHandler(data, status);
 				}
 			}
-		});
+		);
 	},
 	updateProfile: function(id, name, theType, temperatures, events, successHandler, failureHandler) {
-		$.ajax({
-			url: this.urlProfile+'/'+id, 
-			type: "post", 
-			data: { 'profile': JSON.stringify( { "id" : id, "name" : name, "type": theType, "temperatures": temperatures, "events": events } ) }, 
-			success: function(data) {
+		var pData = { "id" : id, "name" : name, "type": theType, "temperatures": temperatures, "events": events };
+		this.mael.postData( this.urlProfile+'/'+id, pData, 
+			function(data) {
 				console.log("Profile: " + name + ", has been updated.");
 				if ( typeof(successHandler) !== 'undefined' ) {
 					successHandler(data);
 				}
 			},
-            error: function(xhr, ajaxOptions, thrownError) {
+            function(data, status) {
 				console.log("Profile: " + name + ", FAILED TO UPDATE !!");
 				if ( typeof(failureHandler) !== 'undefined' ) {
-					failureHandler(thrownError);
+					failureHandler(data, status);
 				}
 			}
-		});
+		);
 	},
 	deleteProfile: function(profileId) {
-		$.ajax({
-			url: this.urlProfile+'/'+profileId, 
-			type: "delete", 
-			success: function(data) {
+		this.mael.deleteData(this.urlProfile+'/'+profileId, 
+			function(data) {
 				console.log("Profile: " + profileId + ", has been deleted.");
 			}
-		});
+		);
 	}
 };
 
@@ -270,6 +287,7 @@ MaelstromControllerSettings.prototype = {
 		this.urlController = '/iocontroller';
 		this.loadedHandler = loadedHandler;
 		this.changeHandler = changeHandler;
+		this.mael = mael;
 		mael.subscribe('_iocontrollers');
 		mael.addHandler('_iocontrollers', function(data) {
 			var p, msg = data.message;
@@ -285,7 +303,7 @@ MaelstromControllerSettings.prototype = {
 	},
 	getControllers: function(handler) {
 		var that = this;
-		$.get(this.urlControllers, function(data) {
+		this.mael.getData(this.urlControllers, function(data) {
 			var profs = data.controllers;
 			if ( typeof(handler) !== 'undefined' ) {
 				handler(profs);
@@ -296,7 +314,7 @@ MaelstromControllerSettings.prototype = {
 	},
 	getController: function(controllerId, handler) {
 		var that = this;
-		$.get(this.urlController+'/'+controllerId, function(data) {
+		this.mael.getData(this.urlController+'/'+controllerId, function(data) {
 			var prof = data.controller;
 			if ( typeof(handler) !== 'undefined' ) {
 				handler(prof);
@@ -304,51 +322,45 @@ MaelstromControllerSettings.prototype = {
 		});
 	},
 	createController: function(name, address, port, socket, successHandler, failureHandler) {
-		$.ajax({
-			url: this.urlControllers,
-			type: "post", 
-			data: { 'iocontroller': JSON.stringify( { "name" : name, "address": address, "port": port, "socket": socket } ) }, 
-			success: function(data) {
+		var pData = { "name" : name, "address": address, "port": port, "socket": socket };
+		this.mael.postData( this.urlControllers, pData, 
+			function(data) {
 				console.log("Controller: " + name + ", has been created.");
 				if ( typeof(successHandler) !== 'undefined' ) {
 					successHandler(data);
 				}
 			},
-            error: function(xhr, ajaxOptions, thrownError) {
+            function(data, status) {
 				console.log("Controller: " + name + ", FAILED TO CREATE !!");
 				if ( typeof(failureHandler) !== 'undefined' ) {
-					failureHandler(thrownError);
+					failureHandler(data, status);
 				}
 			}
-		});
+		);
 	},
 	updateController: function(id, name, address, port, socket, successHandler, failureHandler) {
-		$.ajax({
-			url: this.urlController+'/'+id, 
-			type: "post", 
-			data: { 'iocontroller': JSON.stringify( { "id" : id, "name" : name, "address": address, "port": port, "socket": socket } ) }, 
-			success: function(data) {
+		var pData = { "id" : id, "name" : name, "address": address, "port": port, "socket": socket };
+		this.mael.postData( this.urlController+'/'+id, pData, 
+			function(data) {
 				console.log("Controller: " + name + ", has been updated.");
 				if ( typeof(successHandler) !== 'undefined' ) {
 					successHandler(data);
 				}
 			},
-            error: function(xhr, ajaxOptions, thrownError) {
+            function(data, status) {
 				console.log("Controller: " + name + ", FAILED TO UPDATE !!");
 				if ( typeof(failureHandler) !== 'undefined' ) {
-					failureHandler(thrownError);
+					failureHandler(data, status);
 				}
 			}
-		});
+		);
 	},
 	deleteController: function(controllerId) {
-		$.ajax({
-			url: this.urlController+'/'+controllerId, 
-			type: "delete", 
-			success: function(data) {
+		this.mael.deleteData( this.urlController+'/'+controllerId, 
+			function(data) {
 				console.log("Controller: " + controllerId + ", has been deleted.");
 			}
-		});
+		);
 	}
 };
 

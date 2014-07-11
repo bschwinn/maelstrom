@@ -1,15 +1,12 @@
-app.factory('maelstrom', function ($rootScope) {
+app.factory('maelstrom', function ($rootScope, $http) {
 
-  var maelstrom = new Maelstrom( { debugEnabled: true, debugDivId : 'debugger' } );
+  var maelstrom = new Maelstrom( $http, { debugEnabled: true, debugDivId : 'debugger' } );
   var setman=null, ioman=null, profman=null;
 
   return {
     addHandler: function (eventName, callback) {
       maelstrom.addHandler(eventName, function (data) {  
-        var args = arguments;
-        $rootScope.$apply(function () {
-          callback.call(maelstrom, data);
-        });
+        callback.call(maelstrom, data);
       });
     },
     postMessage: function (channel, msg) {
@@ -26,20 +23,14 @@ app.factory('maelstrom', function ($rootScope) {
     },
     loadAppSettings: function (loadedHandler, changeHandler) {
       if (setman==null) {
-        setman = new MaelstromAppSettings(
-          maelstrom
-          , function (data) {  
-            var args = arguments;
-            $rootScope.$apply(function () {
-              loadedHandler.call(setman, data);
-            });
+        setman = new MaelstromAppSettings( maelstrom,
+          function (data) {  
+            loadedHandler.call(setman, data);
+          },
+          function (data) {  
+            changeHandler.call(setman, data);
           }
-          , function (data) {  
-            var args = arguments;
-            $rootScope.$apply(function () {
-              changeHandler.call(setman, data);
-            });
-          });
+        );
       } else {
         setman.init(maelstrom);
       }
@@ -52,20 +43,14 @@ app.factory('maelstrom', function ($rootScope) {
     },
     loadProfiles: function (loadedHandler, changeHandler) {
       if (profman==null) {
-        profman = new MaelstromProfileSettings(
-          maelstrom
-          , function (data) {  
-            var args = arguments;
-            $rootScope.$apply(function () {
-              loadedHandler.call(profman, data);
-            });
+        profman = new MaelstromProfileSettings( maelstrom,
+          function (data) {  
+            loadedHandler.call(profman, data);
+          },
+          function (data) {  
+            changeHandler.call(profman, data);
           }
-          , function (data) {  
-            var args = arguments;
-            $rootScope.$apply(function () {
-              changeHandler.call(profman, data);
-            });
-          });
+        );
       } else {
         profman.init(maelstrom);
       }
@@ -84,20 +69,14 @@ app.factory('maelstrom', function ($rootScope) {
     },
     loadControllers: function (loadedHandler, changeHandler) {
       if (ioman==null) {
-        ioman = new MaelstromControllerSettings(
-          maelstrom
-          , function (data) {  
-            var args = arguments;
-            $rootScope.$apply(function () {
-              loadedHandler.call(ioman, data);
-            });
+        ioman = new MaelstromControllerSettings( maelstrom, 
+          function (data) {  
+            loadedHandler.call(ioman, data);
+          },
+          function (data) {  
+            changeHandler.call(ioman, data);
           }
-          , function (data) {  
-            var args = arguments;
-            $rootScope.$apply(function () {
-              changeHandler.call(ioman, data);
-            });
-          });
+        );
       } else {
         ioman.init(maelstrom);
       }

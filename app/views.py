@@ -25,7 +25,7 @@ def get_appsettings():
 
 @app.route('/appsettings', methods = ['POST'])
 def save_appsettings():
-	setman.save_appsettings(json.loads(request.form["settings"]))
+	setman.save_appsettings(request.get_json())
 	return jsonify( { 'status': 'success' } )
 
 
@@ -36,19 +36,19 @@ def get_profiles():
 	profs = profman.get_profiles()
 	return jsonify( { 'profiles': profs } )
 
-@app.route('/profiles', methods = ['POST'])
-def create_profile():
-	profman.create_profile(json.loads(request.form["profile"]))
-	return jsonify( { 'status': 'success' } )
-
 @app.route('/profile/<id>', methods = ['GET'])
 def get_profile(id):
 	prof = profman.get_profile(id)
 	return jsonify( { 'profile': prof } )
 
+@app.route('/profiles', methods = ['POST'])
+def create_profile():
+	profman.create_profile(request.get_json())
+	return jsonify( { 'status': 'success' } )
+
 @app.route('/profile/<id>', methods = ['POST'])
 def update_profile(id):
-	profman.update_profile(id, json.loads(request.form["profile"]))
+	profman.update_profile(id, request.get_json())
 	return jsonify( { 'status': 'success' } )
 
 
@@ -61,12 +61,12 @@ def get_controllers():
 
 @app.route('/iocontrollers', methods = ['POST'])
 def create_controller():
-	ioman.create_controller(json.loads(request.form["iocontroller"]))
+	ioman.create_controller(request.get_json())
 	return jsonify( { 'status': 'success' } )
 
 @app.route('/iocontroller/<id>', methods = ['POST'])
 def update_controller(id):
-	ioman.update_controller(id, json.loads(request.form["iocontroller"]))
+	ioman.update_controller(id, request.get_json())
 	return jsonify( { 'status': 'success' } )
 
 

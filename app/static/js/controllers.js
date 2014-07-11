@@ -201,9 +201,7 @@ function BrewCtrl($scope, $document, maelstrom) {
       maelstrom.updateProfile( $scope.selectedProfile.id, $scope.selectedProfile.name, $scope.selectedProfile.type, $scope.profileEditor.toJSON().temperatures, [], 
         function() {
           console.log('Profile: ' + $scope.selectedProfile.name + ' saved successfully');
-          $scope.$apply(function() {
-            $scope.profileDetailClass = 'readonly';
-          });
+          $scope.profileDetailClass = 'readonly';
         }, 
         function() {
           console.log('Error saving profile: ' + $scope.selectedProfile.name);
@@ -213,9 +211,7 @@ function BrewCtrl($scope, $document, maelstrom) {
       maelstrom.createProfile( $scope.selectedProfile.name, $scope.selectedProfile.type, $scope.profileEditor.toJSON().temperatures, [], 
         function() {
           console.log('Profile: ' + $scope.selectedProfile.name + ' created successfully');
-          $scope.$apply(function() {
-            $scope.profileDetailClass = 'readonly';
-          });
+          $scope.profileDetailClass = 'readonly';
         }, 
         function() {
           console.log('Error creating profile: ' + $scope.selectedProfile.name);
@@ -267,9 +263,7 @@ function BrewCtrl($scope, $document, maelstrom) {
       maelstrom.updateController( $scope.selectedController.id, $scope.selectedController.name, $scope.selectedController.address, $scope.selectedController.port, $scope.selectedController.socket, 
         function() {
           console.log('Controller: ' + $scope.selectedController.name + ' saved successfully');
-          $scope.$apply(function() {
-            $scope.controllerDetailClass = 'readonly';
-          });
+          $scope.controllerDetailClass = 'readonly';
         }, 
         function() {
           console.log('Error saving controller: ' + $scope.selectedController.name);
@@ -279,9 +273,7 @@ function BrewCtrl($scope, $document, maelstrom) {
       maelstrom.createController( $scope.selectedController.name, $scope.selectedController.address, $scope.selectedController.port, $scope.selectedController.socket, 
         function() {
           console.log('Controller: ' + $scope.selectedController.name + ' created successfully');
-          $scope.$apply(function() {
-            $scope.controllerDetailClass = 'readonly';
-          });
+          $scope.controllerDetailClass = 'readonly';
         }, 
         function() {
           console.log('Error creating controller: ' + $scope.selectedController.name);

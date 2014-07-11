@@ -30,15 +30,20 @@ app.directive('brewTabs', function() {
 });
 
 app.directive('brewProfileTable', function($filter) {
-    function formatDateDisplay(d) {
-        return $filter('date')(d,window.dateTimeFormatDisplay);
-    }
     return {
         link: function(scope, el, attrs) {
+            function formatDateDisplay(d) {
+                return $filter('date')(d,window.dateTimeFormatDisplay);
+            }
+            function updateChart() {
+                if ( scope.profileChart !== null && typeof(scope.profileChart) !== 'undefined' ) {
+                    scope.profileChart.drawChart( scope.profileEditor.getProfileDuration(), scope.profileEditor.toCSV(true, ['date', 'temperature']) );
+                }
+            }
             profileEdit = new TemperatureProfileTable( $(el).attr('id'), new Date(), {
                 editable: false,
                 tableClass: "table table-striped table-hover table-bordered table-condensed",
-                displayDateFormatter: formatDateDisplay, chartUpdateCallBack: null,
+                displayDateFormatter: formatDateDisplay, chartUpdateCallBack: updateChart,
                 contextMenuCssClass: 'profileTableMenu', contextMenuDisplayHandler: null
             });
             scope.profileEditor = profileEdit;
