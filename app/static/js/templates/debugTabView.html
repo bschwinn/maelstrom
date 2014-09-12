@@ -1,0 +1,28 @@
+<!-- debugger content -->
+<div id="debugger" class="tab-pane panel-body">
+	<div class="col-md-3">
+		<div style="margin:5px 0 5px 0;">Test Simulations</div>
+		<div id="debugTests">
+			<button class="btn btn-primary btn-block" ng-click="generateAlarms()">Generate Alarms</button>
+			<button class="btn btn-primary btn-block" ng-click="generateLogs()">Generate Logs</button>
+		</div>
+	</div>
+	<div class="col-md-9 panel panel-primary">
+		<div id="publish" class="panel-body">
+			<div class="form-group">
+				<label for="exampleInputEmail1">Publish a message to a channel</label>
+				<textarea id="postThisMsg" class="form-control" ng-model="debug.postMessage" rows="7"></textarea>
+				<p class="help-block">Enter message json and select a channel, an example of an alarm message:</p>
+				<p class="help-block">{ "channel": "alarms", "payload": { "alarms": [ { "source": "system" , "code": 1001, "msg": "DANGER! DANGER!" } ] } }</p>
+				<span id="postThisChanLabel">Channel</span>&#160;<select ng-model="debug.postChannel">
+					<option>data</option>
+					<option>chart</option>
+					<option>logs</option>
+					<option>alarms</option>
+				</select>
+				<button class="btn btn-primary btn-sm" ng-click="debuggerPostMessage()">submit</button>
+			</div>
+			<br class="crystal" />
+		</div>
+	</div>
+</div>

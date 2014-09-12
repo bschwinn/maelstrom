@@ -1,4 +1,4 @@
-from flask import render_template, make_response, jsonify, url_for, request
+from flask import render_template, make_response, jsonify, url_for, request, redirect
 
 import simplejson as json
 
@@ -12,6 +12,10 @@ ioman = dao.IOControllerManager()
 
 # main view - angular does most of the work here
 @app.route('/', methods = ['GET'])
+def get_root():
+	return redirect("/app.html", code=302)
+
+@app.route('/app.html', methods = ['GET'])
 def get_app():
 	return render_template("app.html", title = 'Maelstrom - A BrewPi Interface')
 

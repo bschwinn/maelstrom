@@ -1,4 +1,4 @@
-app.factory('maelstrom', function ($rootScope, $http) {
+angular.module('brewApp.services', []).factory('maelstrom', ['$rootScope', '$http', function ($rootScope, $http) {
 
   var maelstrom = new Maelstrom( $http, { debugEnabled: true, debugDivId : 'debugger' } );
   var setman=null, ioman=null, profman=null;
@@ -94,5 +94,5 @@ app.factory('maelstrom', function ($rootScope, $http) {
       ioman.createController(name, address, port, socket, successHandler, failureHandler);
     }
   };
-});
+}]);
 

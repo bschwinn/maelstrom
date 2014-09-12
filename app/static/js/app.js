@@ -1,11 +1,28 @@
-// Declare app level module which depends on filters, and services
-//var app = angular.module('brewApp', ['brewApp.filters', 'brewApp.directives']);
-var app = angular.module('brewApp', []);
 
 window.dateTimeFormatDisplay = 'MM/dd/yy hh:mm:ss'
 window.tempFormat = 'F';
 
-app.directive('brewKeyProcessor', function() {
+// declare app level module and it's dependencies
+
+brewApp = angular.module('brewApp', ['ngRoute', 'brewApp.controllers', 'brewApp.services', 'brewtabs']);
+brewApp.config(
+    function($routeProvider, $locationProvider) {
+      $routeProvider.
+      when('/profiles', {
+          activeTab: 'profiles'
+      }).
+      when('/appsettings', {
+        activeTab: 'appsettings'
+      }).
+      when('/controllers', {
+        activeTab: 'controllers'
+      }).
+      when('/debugger', {
+        activeTab: 'debugger'
+      });
+      $locationProvider.html5Mode(false);
+});
+brewApp.directive('brewKeyProcessor', function() {
 	return {
 		link: function(scope, el, attrs) {
 			$(document).bind( 'keypress', function(e) {
@@ -16,20 +33,7 @@ app.directive('brewKeyProcessor', function() {
 		}
 	};
 });
-
-app.directive('brewTabs', function() {
-	return {
-		link: function(scope, el, attrs) {
-			$(el).find('a').click(function (e) {
-			  e.preventDefault()
-			  $(this).tab('show')
-			});
-			$(el).find('a:first').tab('show');
-		}
-	};
-});
-
-app.directive('brewProfileTable', function($filter) {
+brewApp.directive('brewProfileTable', function($filter) {
     return {
         link: function(scope, el, attrs) {
             function formatDateDisplay(d) {
@@ -46,12 +50,11 @@ app.directive('brewProfileTable', function($filter) {
                 displayDateFormatter: formatDateDisplay, chartUpdateCallBack: updateChart,
                 contextMenuCssClass: 'profileTableMenu', contextMenuDisplayHandler: null
             });
-            scope.profileEditor = profileEdit;
+            scope.setProfileEditor(profileEdit);
         }
     };
 });
-
-app.directive('brewProfileChart', function($filter) {
+brewApp.directive('brewProfileChart', function($filter) {
     return {
         link: function(scope, el, attrs) {
             profileChart = new TemperatureProfileChart( $(el).attr('id'), 
@@ -62,12 +65,11 @@ app.directive('brewProfileChart', function($filter) {
                     return parseFloat(y).toFixed(2) + "\u00B0 " + window.tempFormat;
                 }
             );
-            scope.profileChart = profileChart;
+            scope.setProfileChart(profileChart);
         }
     };
 });
-
-app.directive('brewDataSlider', function($timeout) {
+brewApp.directive('brewDataSlider', function($timeout) {
     return {
         restrict: 'AE',
         replace: true,
@@ -113,8 +115,7 @@ app.directive('brewDataSlider', function($timeout) {
         templateUrl: 's/js/templates/brewDataSlider.html'
     };
 });
-
-app.directive('brewDebounce', function($timeout) {
+brewApp.directive('brewDebounce', function($timeout) {
     return {
         restrict: 'A',
         require: 'ngModel',
@@ -142,9 +143,8 @@ app.directive('brewDebounce', function($timeout) {
 
     }
 });
+brewApp.directive('brewAutoScroll', function(){ // courtesy of Luegg: https://github.com/Luegg/angularjs-scroll-glue
 
-// courtesy of Luegg: https://github.com/Luegg/angularjs-scroll-glue
-app.directive('brewAutoScroll', function(){
 
 	function fakeNgModel(initValue){
         return {

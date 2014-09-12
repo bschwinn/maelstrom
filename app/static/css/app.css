@@ -5,9 +5,9 @@ a, a:hover { text-decoration: none; }
 .crystal { clear:both; }
 
 #main { max-width:1200px; padding:10px; }
-#mainTabNav { border-bottom: 0px; }
-#mainTabNav li:first{ margin-left: 10px; !important }
-#mainTabContent { min-height: 300px; border: 1px solid #ddd; }
+#mainTabs ul.nav-tabs { border-bottom: 0px; }
+#mainTabs ul.nav-tabs li:first-child { margin-left: 10px; }
+#mainTabs .brewtabs.tab-content { min-height: 300px; border: 1px solid #ddd; border-radius:5px; }
 
 #lcdDiv { 
 	height:120px;
@@ -36,7 +36,9 @@ a, a:hover { text-decoration: none; }
 #appsettingslist li a, #profilelist li a , #controllerlist li a { border-top-right-radius: 0px; border-bottom-right-radius: 0px; }
 #appsettingsMain, #profileDetail, #controllerDetail { min-height: 400px; position:relative; }
 #saveAppSettings, #saveProfile, #saveController { bottom:15px; right:25px; position:absolute; }
+
 #newProfile, #newController { bottom:15px; left:0px; position:absolute; }
+.empty-prompt { padding:10px; }
 
 #profileDetail.empty .panel-body { display:none; }
 #profileDetail.edit .form-display, #profileDetail.new .form-display { display:none; }

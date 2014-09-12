@@ -2,167 +2,23 @@
 
 {% block content %}
 {% raw %}
+
 <!-- main tab'ed content -->
 <div id="mainTabs">
-	<ul id="mainTabNav" class="nav nav-tabs" brew-tabs>
-		<li style="margin-left:10px;"><a href="#profiles" class="active" data-toggle="tab"><span>Profiles</span></a></li>
-		<li><a href="#appsettings" data-toggle="tab"><span>App Settings</span></a></li>
-		<li><a href="#controllers" data-toggle="tab"><span>uControllers</span></a></li>
-		<li><a href="#debuggerDiv" data-toggle="tab"><span>Debugger</span></a></li>
-	</ul>
-	<div id="mainTabContent" class="tab-content panel panel-default">
-
-		<!-- profile library -->
-		<div id="profiles" class="tab-pane active panel-body">
-			<div id="profilelist" class="col-md-3">
-				<ul class="nav nav-pills nav-stacked" brew-tabs>
-					<li ng-repeat="profile in profiles" class="{{selectedProfile.id == profile.id ? 'active' : ''}}"><a href="#profile_{{profile.id}}" ng-click="selectProfile(profile.id)" data-toggle="tab">{{profile.name}}</a></li>
-				</ul>
-				<div id="newProfile">
-					<button id="btnNewProf" type="button" class="btn btn-primary" ng-click="newProfile()">&plus;</button>
-				</div>
-			</div>
-			<div id="profileDetail" class="col-md-9 panel panel-primary {{profileDetailClass}}">
-				<div class="tab-pane panel-body">
-					<div class="col-md-6">
-						<div class="form-group">
-							<label>Profile Name</label>
-							<p class="form-display">{{selectedProfile.name}}</p>
-							<input type="text" class="form-control" ng-model="selectedProfile.name" placeholder="Enter Profile Name">
-						</div>
-						<div id="profileEditDiv" brew-profile-table></div>
-					</div>
-					<div class="col-md-6">
-						<div class="form-group">
-							<label>Profile Type</label>
-							<p class="form-display">{{selectedProfile.type}}</p>
-							<select id="addProfile_type" class="form-control" ng-model="selectedProfile.type">
-								<option name="fermentation" id="fermentation">Fermentation</option>
-								<option name="mash" id="mash">Mash</option>
-							</select>
-						</div>
-						<div id="profileEditChartDiv" style="width:380px;height:270px;" brew-profile-chart></div>
-					</div>
-					<div id="saveProfile">
-						<button id="btnEditProf" class="btn btn-primary {{profileDetailClass}}" ng-click="editSelectedProfile()">Edit</button>
-						<button id="btnCancelEditProf" class="btn btn-secondary {{profileDetailClass}}" ng-click="cancelEditProfile()">Cancel</button>
-						<button id="btnSaveProf" class="btn btn-primary {{profileDetailClass}}" ng-click="saveSelectedProfile()">Save</button>
-					</div>
-				</div>
-				<div class="empty-prompt {{profileDetailClass}}">Pick a profile already</div>
-			</div>
-		</div>
-
-		<!-- app settings content -->
-		<div id="appsettings" class="tab-pane active panel-body">
-			<ul id="appsettingslist" class="nav nav-pills nav-stacked col-md-3" brew-tabs>
-				<li style="margin-top:10px;"><a href="#appsettings_lookfeel" class="active" data-toggle="tab">Look and Feel</a></li>
-				<li><a href="#appsettings_advanced" data-toggle="tab">Advanced</a></li>
-			</ul>
-			<div id="appsettingsMain" class="tab-content col-md-9 panel panel-primary">
-				<div id="appsettings_lookfeel" class="tab-pane active panel-body">
-					<div class="form-group">
-						<label for="exampleInputEmail1">Logo Path/URL</label>
-						<input type="text" class="form-control" ng-model="appsettings.breweryLogo" brew-debounce placeholder="Enter Logo URL">
-						<p class="help-block">Relative or absolute url to logo file - Best if sized ~ 3:1</p>
-					</div>
-					<div class="form-group">
-						<label for="exampleInputEmail1">UI Selected Style</label>
-						<input type="text" class="form-control" ng-model="appsettings.themeSelectedStyle" placeholder="Enter CSS Color">
-						<p class="help-block">The CSS definition of .ui-selected, for example: "background: #eee;" or "background: #343434; border: solid 1px #333</p>
-					</div>
-				</div>
-				<div id="appsettings_advanced" class="tab-pane panel-body">
-					<div class="form-group">
-						<label for="exampleInputEmail1">Theme Name</label>
-						<input type="text" class="form-control" ng-model="appsettings.themeStylesheet" placeholder="Enter Theme Name">
-						<p class="help-block">The name of a valid Bootstrap UI theme</p>
-					</div>
-				</div>
-				<div id="saveAppSettings">
-					<button class="btn btn-secondary" ng-click="getAppSettings()">Cancel</button>
-					<button class="btn btn-primary" ng-click="saveAppSettings()">Save</button>
-				</div>
-			</div>
-			<br class="crystal" />
-		</div>
-
-		<!-- controllers/device setup -->
-		<div id="controllers" class="tab-pane active panel-body">
-			<div id="controllerlist" class="col-md-3">
-				<ul class="nav nav-pills nav-stacked" brew-tabs>
-					<li ng-repeat="controller in controllers" class="{{selectedController.id == controller.id ? 'active' : ''}}"><a href="#controller_{{controller.id}}" ng-click="selectController(controller.id)" data-toggle="tab">{{controller.name}}</a></li>
-				</ul>
-				<div id="newController">
-					<button id="btnController" type="button" class="btn btn-primary" ng-click="newController()">&plus;</button>
-				</div>
-			</div>
-			<div id="controllerDetail" class="col-md-9 panel panel-primary {{controllerDetailClass}}">
-				<div class="tab-pane panel-body">
-					<div class="col-md-6">
-						<div class="form-group">
-							<label>Name</label>
-							<p class="form-display">{{selectedController.name}}</p>
-							<input type="text" class="form-control" ng-model="selectedController.name" placeholder="Enter Controller Name">
-						</div>
-						<div class="form-group">
-							<label>Address</label>
-							<p class="form-display">{{selectedController.address}}</p>
-							<input type="text" class="form-control" ng-model="selectedController.address" placeholder="Enter Controller Address">
-						</div>
-					</div>
-					<div class="col-md-6">
-						<div class="form-group">
-							<label>Socket</label>
-							<p class="form-display">{{selectedController.socket}}</p>
-							<input type="text" class="form-control" ng-model="selectedController.socket" placeholder="Enter Controller Socket">
-						</div>
-						<div class="form-group">
-							<label>Port</label>
-							<p class="form-display">{{selectedController.port}}</p>
-							<input type="text" class="form-control" ng-model="selectedController.port" placeholder="Enter Controller Port">
-						</div>
-					</div>
-					<div id="saveController">
-						<button id="btnEditController" class="btn btn-primary {{controllerDetailClass}}" ng-click="editSelectedController()">Edit</button>
-						<button id="btnCancelEditController" class="btn btn-secondary {{controllerDetailClass}}" ng-click="cancelEditController()">Cancel</button>
-						<button id="btnSaveController" class="btn btn-primary {{controllerDetailClass}}" ng-click="saveSelectedController()">Save</button>
-					</div>
-				</div>
-				<div class="empty-prompt {{controllerDetailClass}}">Pick a controller already</div>
-			</div>
-		</div>
-
-
-		<!-- debugger content -->
-		<div id="debuggerDiv" class="tab-pane panel-body">
-			<div class="col-md-3">
-				<div style="margin:5px 0 5px 0;">Test Simulations</div>
-				<div id="debugTests">
-					<button class="btn btn-primary btn-block" ng-click="generateAlarms()">Generate Alarms</button>
-					<button class="btn btn-primary btn-block" ng-click="generateLogs()">Generate Logs</button>
-				</div>
-			</div>
-			<div class="col-md-9 panel panel-primary">
-				<div id="publish" class="panel-body">
-					<div class="form-group">
-						<label for="exampleInputEmail1">Publish a message to a channel</label>
-						<textarea id="postThisMsg" class="form-control" ng-model="debug.postMessage" rows="7"></textarea>
-						<p class="help-block">Enter message json and select a channel, an example of an alarm message:</p>
-						<p class="help-block">{ "channel": "alarms", "payload": { "alarms": [ { "source": "system" , "code": 1001, "msg": "DANGER! DANGER!" } ] } }</p>
-						<span id="postThisChanLabel">Channel</span>&#160;<select ng-model="debug.postChannel">
-							<option>data</option>
-							<option>chart</option>
-							<option>logs</option>
-							<option>alarms</option>
-						</select>
-						<button class="btn btn-primary btn-sm" ng-click="debuggerPostMessage()">submit</button>
-					</div>
-					<br class="crystal" />
-				</div>
-			</div>
-		</div>
-	</div>
+	<tabset vertical="false" type="tabs">
+    	<tab heading="Profiles">
+    		<ng-include src="'s/js/templates/brewProfileTab.html'" />
+    	</tab>
+    	<tab heading="App Settings">
+    		<ng-include src="'s/js/templates/appSettingsTabView.html'" />
+    	</tab>
+    	<tab heading="IO Controllers">
+    		<ng-include src="'s/js/templates/ioTabView.html'" />
+    	</tab>
+    	<tab heading="debugger">
+    		<ng-include src="'s/js/templates/debugTabView.html'" />
+    	</tab>
+	</tabset>
 </div>
 
 <!-- modal dialog for device logs -->
@@ -174,7 +30,7 @@
 				<h4 class="modal-title" id="myModalLabel">Device Logs</h4>
 			</div>
 			<div class="modal-body" brew-auto-scroll>
-					<div ng-repeat="entry in deviceLogEntries">
+				<div ng-repeat="entry in deviceLogEntries">
 				{{ entry.msg + '(' + entry.source + ')' }}
 				</div>
 			</div>
@@ -184,5 +40,6 @@
 		</div>
 	</div>
 </div>
+
 {% endraw %}
 {% endblock %}

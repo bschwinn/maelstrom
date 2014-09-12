@@ -1,0 +1,39 @@
+<div id="profiles" class="tab-pane active panel-body">
+	<div id="profilelist" class="col-md-3">
+		<ul class="nav nav-pills nav-stacked">
+			<li ng-repeat="profile in profiles" class="{{selectedProfile.id == profile.id ? 'active' : ''}}"><a href="#" ng-click="selectProfile(profile.id)" data-toggle="tab">{{profile.name}}</a></li>
+		</ul>
+		<div id="newProfile">
+			<button id="btnNewProf" type="button" class="btn btn-primary" ng-click="newProfile()">&plus;</button>
+		</div>
+	</div>
+	<div id="profileDetail" class="col-md-9 panel panel-primary {{profileDetailClass}}">
+		<div class="tab-pane panel-body">
+			<div class="col-md-6">
+				<div class="form-group">
+					<label>Profile Name</label>
+					<p class="form-display">{{selectedProfile.name}}</p>
+					<input type="text" class="form-control" ng-model="selectedProfile.name" placeholder="Enter Profile Name">
+				</div>
+				<div id="profileEditDiv" brew-profile-table></div>
+			</div>
+			<div class="col-md-6">
+				<div class="form-group">
+					<label>Profile Type</label>
+					<p class="form-display">{{selectedProfile.type}}</p>
+					<select id="addProfile_type" class="form-control" ng-model="selectedProfile.type">
+						<option name="fermentation" id="fermentation">Fermentation</option>
+						<option name="mash" id="mash">Mash</option>
+					</select>
+				</div>
+				<div id="profileEditChartDiv" style="width:380px;height:270px;" brew-profile-chart></div>
+			</div>
+			<div id="saveProfile">
+				<button id="btnEditProf" class="btn btn-primary {{profileDetailClass}}" ng-click="editSelectedProfile()">Edit</button>
+				<button id="btnCancelEditProf" class="btn btn-secondary {{profileDetailClass}}" ng-click="cancelEditProfile()">Cancel</button>
+				<button id="btnSaveProf" class="btn btn-primary {{profileDetailClass}}" ng-click="saveSelectedProfile()">Save</button>
+			</div>
+		</div>
+		<div class="empty-prompt {{profileDetailClass}}">Pick a profile already</div>
+	</div>
+</div>

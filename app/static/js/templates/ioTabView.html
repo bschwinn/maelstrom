@@ -1,0 +1,45 @@
+<!-- controllers/device setup -->
+<div id="controllers" class="tab-pane active panel-body">
+	<div id="controllerlist" class="col-md-3">
+		<ul class="nav nav-pills nav-stacked">
+			<li ng-repeat="controller in controllers" class="{{selectedController.id == controller.id ? 'active' : ''}}"><a href="#" ng-click="selectController(controller.id)" data-toggle="tab">{{controller.name}}</a></li>
+		</ul>
+		<div id="newController">
+			<button id="btnController" type="button" class="btn btn-primary" ng-click="newController()">&plus;</button>
+		</div>
+	</div>
+	<div id="controllerDetail" class="col-md-9 panel panel-primary {{controllerDetailClass}}">
+		<div class="tab-pane panel-body">
+			<div class="col-md-6">
+				<div class="form-group">
+					<label>Name</label>
+					<p class="form-display">{{selectedController.name}}</p>
+					<input type="text" class="form-control" ng-model="selectedController.name" placeholder="Enter Controller Name">
+				</div>
+				<div class="form-group">
+					<label>Address</label>
+					<p class="form-display">{{selectedController.address}}</p>
+					<input type="text" class="form-control" ng-model="selectedController.address" placeholder="Enter Controller Address">
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="form-group">
+					<label>Socket</label>
+					<p class="form-display">{{selectedController.socket}}</p>
+					<input type="text" class="form-control" ng-model="selectedController.socket" placeholder="Enter Controller Socket">
+				</div>
+				<div class="form-group">
+					<label>Port</label>
+					<p class="form-display">{{selectedController.port}}</p>
+					<input type="text" class="form-control" ng-model="selectedController.port" placeholder="Enter Controller Port">
+				</div>
+			</div>
+			<div id="saveController">
+				<button id="btnEditController" class="btn btn-primary {{controllerDetailClass}}" ng-click="editSelectedController()">Edit</button>
+				<button id="btnCancelEditController" class="btn btn-secondary {{controllerDetailClass}}" ng-click="cancelEditController()">Cancel</button>
+				<button id="btnSaveController" class="btn btn-primary {{controllerDetailClass}}" ng-click="saveSelectedController()">Save</button>
+			</div>
+		</div>
+		<div class="empty-prompt {{controllerDetailClass}}">Pick a controller already</div>
+	</div>
+</div>

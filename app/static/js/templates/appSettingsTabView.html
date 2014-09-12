@@ -1,0 +1,33 @@
+<!-- app settings content -->
+<div id="appsettings" class="tab-pane panel-body">
+	<ul id="appsettingslist" class="nav nav-pills nav-stacked col-md-3">
+		<li style="margin-top:10px;" class="active"><a href="#appsettings_lookfeel">Look and Feel</a></li>
+		<li><a href="#appsettings_advanced">Advanced</a></li>
+	</ul>
+	<div id="appsettingsMain" class="tab-content col-md-9 panel panel-primary">
+		<div id="appsettings_lookfeel" class="tab-pane active panel-body">
+			<div class="form-group">
+				<label for="exampleInputEmail1">Logo Path/URL</label>
+				<input type="text" class="form-control" ng-model="appsettings.breweryLogo" brew-debounce placeholder="Enter Logo URL">
+				<p class="help-block">Relative or absolute url to logo file - Best if sized ~ 3:1</p>
+			</div>
+			<div class="form-group">
+				<label for="exampleInputEmail1">UI Selected Style</label>
+				<input type="text" class="form-control" ng-model="appsettings.themeSelectedStyle" placeholder="Enter CSS Color">
+				<p class="help-block">The CSS definition of .ui-selected, for example: "background: #eee;" or "background: #343434; border: solid 1px #333</p>
+			</div>
+		</div>
+		<div id="appsettings_advanced" class="tab-pane panel-body">
+			<div class="form-group">
+				<label for="exampleInputEmail1">Theme Name</label>
+				<input type="text" class="form-control" ng-model="appsettings.themeStylesheet" placeholder="Enter Theme Name">
+				<p class="help-block">The name of a valid Bootstrap UI theme</p>
+			</div>
+		</div>
+		<div id="saveAppSettings">
+			<button class="btn btn-secondary" ng-click="getAppSettings()">Cancel</button>
+			<button class="btn btn-primary" ng-click="saveAppSettings()">Save</button>
+		</div>
+	</div>
+	<br class="crystal" />
+</div>
