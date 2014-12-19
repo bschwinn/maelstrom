@@ -5,8 +5,6 @@ from tornado.web import Application, StaticFileHandler, FallbackHandler
 from tornado.ioloop import IOLoop
 
 from app import app, core, db
-from config import basedir
-
 
 ###################################################
 #   web application setup and startup
@@ -16,6 +14,8 @@ def startmeup():
 
     wsgi_app = WSGIContainer(app)
 
+    basedir = os.path.abspath(os.path.dirname(__file__))
+
     application = Application([
 
         (r"/s/(.*)", StaticFileHandler, { "path" : basedir + "/app/static" }),
@@ -23,7 +23,12 @@ def startmeup():
         (r"/publish", core.Publisher),
         (r".*", FallbackHandler, dict(fallback=wsgi_app)),
     ])
-    db.init_db(app.config['SQLALCHEMY_DATABASE_URI'])
+
+    CONN_STR = app.config['SQLALCHEMY_DATABASE_URI']
+
+    print("Connection string is ? " + CONN_STR)
+
+    db.init_db( CONN_STR )
     application.listen(8888)
     IOLoop.instance().start()
 
