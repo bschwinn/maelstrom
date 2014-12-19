@@ -5,6 +5,7 @@ from tornado.web import Application, StaticFileHandler, FallbackHandler
 from tornado.ioloop import IOLoop
 
 from app import app, core, db
+from config import basedir
 
 ###################################################
 #   web application setup and startup
@@ -13,8 +14,6 @@ from app import app, core, db
 def startmeup():
 
     wsgi_app = WSGIContainer(app)
-
-    basedir = os.path.abspath(os.path.dirname(__file__))
 
     application = Application([
 
