@@ -101,13 +101,11 @@ angular.module('brewApp.controllers', [])
           break;
 
         case "data" :
-          for (var i=$scope.controllers.length - 1; i >= 0; i--) {
-            var c = $scope.controllers[i];
+          $($scope.controllers).each(function(idx,c) {
             if ( c.id == payload.controllerId ) {
               c.data = payload;
             }
-            break;
-          };
+          });
           break;
       }
     });
