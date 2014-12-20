@@ -6,13 +6,17 @@ Started out as messing around with Websockets and Tornado, ended up building a l
 What's it do now?
 ----------------------------
 At the moment, the server and client make an app that does the following.
-Server side:
+
+*Server side:*
+
  - websocket interface - pub/sub over channels semantic
  - RESTful inteface to save "app settings" in an SQLite db - simple key/value pairs
  - RESTful inteface to save "io configuration" in an SQLite db - spark-cores/arduinos and their physical IO
  - RESTful inteface to save "temperature profiles" in an SQLite db - temperature settings by date
  - POST inteface to publish messages to any channel - subscribers have events pushed to them over the websocket
-Client side:
+
+*Client side:*
+
  - socket connection with pub/sub functionality
  - javascript interfaces to the RESTful interfaces mentioned above
  - subscribes and handles events on the following channels:
