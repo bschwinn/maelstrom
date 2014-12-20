@@ -99,11 +99,12 @@ brewApp.directive('brewDataSlider', function($timeout) {
 
             // auto-slide
             var timer;
+            var t = 3000;
             var sliderFunc = function() {
               timer = $timeout(function() {
                 scope.next();
-                timer = $timeout(sliderFunc, 5000);
-              }, 5000);
+                timer = $timeout(sliderFunc, t);
+              }, t);
             };
             sliderFunc();
 

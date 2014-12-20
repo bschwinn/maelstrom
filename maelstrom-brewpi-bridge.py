@@ -88,6 +88,6 @@ while True:
 
 	bridge.scan()
 
-	time.sleep(7)
+	time.sleep(5)
 
 
